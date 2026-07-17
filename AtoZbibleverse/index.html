@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bible Memory ABCs Hangman</title>
+    <style>
+        :root {
+            --sky-top: #1e3c72;
+            --sky-bottom: #2a5298;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --primary: #4a90e2;
+            --primary-dark: #357abd;
+            --accent: #f1c40f;
+            --text-main: #2c3e50;
+            --success: #2ecc71;
+            --error: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+            color: var(--text-main);
+            height: 100vh;
+            margin: 0;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Prevent vertical/horizontal scroll completely */
+            position: relative;
+        }
+
+        /* Ambient Twinkling Canvas background - Now layered in front! */
+        #animationCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows user to click/tap buttons behind the canvas */
+            z-index: 99; /* Placed in front of the game container (z-index: 2) to celebrate progress */
+            transform: translateZ(0); /* Hardware acceleration */
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 2;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 700px;
+            max-height: 98vh; /* Fits within the screen height limits perfectly */
+            padding: 12px 18px;
+            text-align: center;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transform: translateZ(0);
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            color: #1e3c72;
+            margin-top: 0;
+            margin-bottom: 1px;
+            font-weight: 800;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            background: #f0f4f8;
+            padding: 4px 12px;
+            border-radius: 10px;
+            border: 1px solid #e1e8ed;
+            flex-shrink: 0;
+        }
+
+        .letter-hint {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e3c72;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .letter-circle {
+            background: #1e3c72;
+            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Responsive Hangman SVG styling with dynamic flex constraint */
+        .hangman-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 3px 0;
+            flex: 1;
+            min-height: 80px;
+            max-height: 140px;
+        }
+
+        #hangmanSvg {
+            max-height: 100%;
+            width: auto;
+        }
+
+        .hangman-part {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .hangman-part.visible {
+            opacity: 1;
+        }
+
+        /* Bilingual Scripture Card styling to show once solved (replaces hangman box) */
+        .verse-card {
+            background: linear-gradient(135deg, #fdfbf7 0%, #f5f2eb 100%);
+            border: 2px solid #e2d9c8;
+            border-radius: 14px;
+            padding: 8px 12px;
+            margin: 4px auto;
+            width: 100%;
+            max-width: 540px;
+            flex: 1;
+            min-height: 80px;
+            max-height: 140px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05), 0 4px 10px rgba(0,0,0,0.05);
+            display: none; /* Displayed dynamically instead of hangman SVG */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: slideInUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+            overflow-y: auto; /* Fallback safe scroll *inside* card if ever needed on tiny screens */
+        }
+
+        .verse-reference {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #b21f1f;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .verse-divider {
+            width: 85%;
+            border-top: 1px dashed #d5cbba;
+            margin: 4px 0;
+        }
+
+        .verse-text {
+            line-height: 1.35;
+        }
+
+        .verse-text.english {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        /* Chinese Bible verse font optimized for extreme clarity */
+        .verse-text.chinese {
+            font-size: 1.15rem;
+            font-weight: 750;
+            color: #102a43;
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif;
+            margin-top: 1px;
+            text-shadow: 0.5px 0.5px 0px rgba(255,255,255,0.8);
+        }
+
+        /* Word Blanks Display */
+        .word-display {
+            font-size: 1.6rem;
+            margin: 8px 0;
+            font-weight: 700;
+            min-height: 2rem;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .word-letter {
+            border-bottom: 3px solid #b2c2d4;
+            min-width: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .word-letter.correct {
+            border-bottom-color: var(--success);
+            color: var(--success);
+            animation: bounce 0.4s ease;
+        }
+        .word-space {
+            min-width: 10px;
+            border-bottom: none;
+        }
+
+        /* Redesigned Compact Keyboard to Fit on exactly ONE Line */
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(26, 1fr); /* Exactly 26 columns */
+            gap: 2px;
+            width: 100%;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
+
+        .key {
+            background: white;
+            border: 1.5px solid #dcdde1;
+            border-radius: 5px;
+            font-size: clamp(0.5rem, 1.7vw, 0.85rem); /* Dynamic text resizing to stay single row */
+            font-weight: 700;
+            color: var(--text-main);
+            width: 100%;
+            height: clamp(24px, 4.2vh, 34px); /* Keeps the height safe & proportional */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.1s, border-color 0.1s, transform 0.1s;
+            box-shadow: 0 1.5px 0px #dcdde1;
+            padding: 0;
+            touch-action: manipulation; /* Solves 300ms touch delay and zoom lag on mobile/tablet */
+        }
+
+        .key:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 1px 0px #dcdde1;
+        }
+
+        .key:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #f7f9fc;
+        }
+
+        .key.correct-guess {
+            background: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+            box-shadow: 0 2px 0px #27ae60 !important;
+        }
+
+        .key.wrong-guess {
+            background: #f1f2f6 !important;
+            color: #ced6e0 !important;
+            border-color: #f1f2f6 !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            transform: scale(0.9);
+        }
+
+        /* Banner Message Overlay */
+        .banner-message {
+            margin: 4px 0;
+            min-height: 32px;
+            display: none; /* Dynamic Display keeps buttons pushed up */
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            transform: scale(0.9);
+            opacity: 0;
+            white-space: pre-line;
+            flex-shrink: 0;
+        }
+        .banner-message.show {
+            display: flex;
+            transform: scale(1);
+            opacity: 1;
+        }
+        .banner-message.win {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #1b5e20;
+            border: 2px dashed var(--success);
+            animation: pulse 1.5s infinite;
+        }
+        .banner-message.lose {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #7f0000;
+            border: 2px dashed var(--error);
+        }
+
+        /* Action Buttons Container (Shifted Higher) */
+        .action-container {
+            margin-top: 4px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-restart {
+            background: #7f8c8d;
+            color: white;
+            font-size: 0.8rem;
+            padding: 5px 12px;
+        }
+
+        /* Custom Modal Dialog Box - Placed on the absolute highest layer */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+            border: 3px solid var(--accent);
+        }
+
+        .modal-content h2 {
+            color: #1e3c72;
+            margin-top: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
+            margin: 12px 0 20px 0;
+        }
+
+        /* Beautiful Custom Footnote Credit */
+        .footer-credit {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #7f8c8d;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(12px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Info Corner */
+        .progress-indicator {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        @media (max-width: 500px) {
+            .game-container {
+                padding: 10px;
+            }
+            .keyboard {
+                gap: 1px;
+            }
+            .key {
+                border-radius: 3px;
+                height: 24px;
+            }
+            .word-display {
+                font-size: 1.2rem;
+                gap: 4px;
+            }
+            h1 {
+                font-size: 1.2rem;
+            }
+            .verse-text.chinese {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Celebration VFX Rendering Overlay on top of the container -->
+    <canvas id="animationCanvas"></canvas>
+
+    <div class="game-container">
+        <div>
+            <h1>Bible ABC Memorization</h1>
+            <div class="subtitle">Guess the biblical words to reveal the alphabet letter!</div>
+        </div>
+
+        <div class="stats-row">
+            <div class="letter-hint">
+                <span>Letter Focus:</span>
+                <span class="letter-circle" id="hintLetter">A</span>
+            </div>
+            <div class="progress-indicator" id="progressText">Word 1 of 26</div>
+        </div>
+
+        <!-- Custom Friendly Hangman SVG Visualizer -->
+        <div class="hangman-box" id="hangmanBox">
+            <svg id="hangmanSvg" viewBox="0 0 100 100" style="display: block;">
+                <!-- Decorative base & friendly signpost -->
+                <path d="M 15,90 L 85,90 M 35,90 L 35,15 L 75,15 L 75,28" stroke="#8d6e63" stroke-width="5" stroke-linecap="round" fill="none" />
+                <path d="M 35,32 L 52,15" stroke="#8d6e63" stroke-width="4" stroke-linecap="round" fill="none" />
+                <!-- Mini golden rope hook -->
+                <circle cx="75" cy="28" r="2.5" fill="#fdbb2d" />
+                
+                <!-- Hangman character strokes (ordered from first wrong guess to last) -->
+                <!-- stroke 1: Head -->
+                <circle id="part-head" cx="75" cy="40" r="9" stroke="#2c3e50" stroke-width="3.5" fill="#fdfdfd" class="hangman-part" />
+                <!-- stroke 2: Torso -->
+                <line id="part-torso" x1="75" y1="49" x2="75" y2="70" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" class="hangman-part" />
+                <!-- stroke 3: Left Arm -->
+                <line id="part-left-arm" x1="75" y1="55" x2="58" y2="48" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" class="hangman-part" />
+                <!-- stroke 4: Right Arm -->
+                <line id="part-right-arm" x1="75" y1="55" x2="92" y2="48" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" class="hangman-part" />
+                <!-- stroke 5: Left Leg -->
+                <line id="part-left-leg" x1="75" y1="70" x2="62" y2="86" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" class="hangman-part" />
+                <!-- stroke 6: Right Leg -->
+                <line id="part-right-leg" x1="75" y1="70" x2="88" y2="86" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" class="hangman-part" />
+            </svg>
+        </div>
+
+        <!-- Memorization Scripture Card (shown dynamically on win/loss) -->
+        <div class="verse-card" id="verseCard">
+            <div class="verse-reference" id="verseReference">Matthew 7:7 | 马太福音 7:7</div>
+            <div class="verse-text english" id="verseText">"Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you."</div>
+            <div class="verse-divider"></div>
+            <div class="verse-text chinese" id="verseTextZh">"你们祈求，就给你们；寻找，就寻见；叩门，就给你们开门。"</div>
+        </div>
+
+        <!-- Word Blanks Display -->
+        <div class="word-display" id="wordDisplay"></div>
+
+        <!-- Winner/Loser banner message (Dynamically shown/hidden to optimize layout) -->
+        <div class="banner-message" id="bannerMessage"></div>
+
+        <!-- Custom Actions -->
+        <div class="action-container">
+            <button class="btn btn-next" id="nextBtn" style="display: none;" onclick="advanceGame()">
+                Next Word 🌟
+            </button>
+            <button class="btn btn-restart" id="resetBtn" onclick="restartEntireGame()">
+                Restart Journey 🔄
+            </button>
+        </div>
+
+        <!-- Responsive Flex Keypad (Always 1 single Row) -->
+        <div class="keyboard" id="keyboard"></div>
+
+        <!-- End Signature Footnote -->
+        <div class="footer-credit">
+            荣耀堂主日学 Glory Presbyterian Church Sunday School 2026
+        </div>
+    </div>
+
+    <!-- Victory Overlay Modal -->
+    <div class="modal-overlay" id="victoryModal">
+        <div class="modal-content">
+            <h2>🎉 Fantastic Journey! 🎉</h2>
+            <p>Incredible effort! You successfully completed and memorized the entire A-to-Z Bible memory list! Keep storing God's Word in your heart! 💖</p>
+            <button class="btn btn-next" style="margin: 0 auto;" onclick="closeVictoryModal()">Play Again 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        const vocabulary = [
+            { 
+                letter: 'A', 
+                word: 'ASK', 
+                reference: 'Matthew 7:7', 
+                referenceZh: '马太福音 7:7', 
+                verse: 'Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you.',
+                verseZh: '你们祈求，就给你们；寻找，就寻见；叩门，就给你们开门。'
+            },
+            { 
+                letter: 'B', 
+                word: 'BELIEVE', 
+                reference: 'Acts 16:31', 
+                referenceZh: '使徒行传 16:31', 
+                verse: 'Believe in the Lord Jesus, and you will be saved, you and your household.',
+                verseZh: '当信主耶稣，你和你一家都必得救。'
+            },
+            { 
+                letter: 'C', 
+                word: 'CONFESS OUR SINS', 
+                reference: '1 John 1:9', 
+                referenceZh: '约翰一书 1:9', 
+                verse: 'If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all unrighteousness.',
+                verseZh: '我们若认自己的罪，神是信实的，是公义的，必要赦免我们的罪，洗净我们一切的不义。'
+            },
+            { 
+                letter: 'D', 
+                word: 'DELIGHT', 
+                reference: 'Psalm 37:4', 
+                referenceZh: '诗篇 37:4', 
+                verse: 'Delight yourself in the Lord, and he will give you the desires of your heart.',
+                verseZh: '又要以耶和华为乐，他就将你心里所求的赐给你。'
+            },
+            { 
+                letter: 'E', 
+                word: 'ENCOURAGEMENT', 
+                reference: '1 Thessalonians 5:11', 
+                referenceZh: '帖撒罗尼迦前书 5:11', 
+                verse: 'Therefore encourage one another and build each other up, just as in fact you are doing.',
+                verseZh: '所以，你们该彼此劝慰，互相建立，正如你们素常行的一样。'
+            },
+            { 
+                letter: 'F', 
+                word: 'FEAR NOT', 
+                reference: 'Isaiah 41:10', 
+                referenceZh: '以赛亚书 41:10', 
+                verse: 'Fear not, for I am with you; be not dismayed, for I am your God; I will strengthen you, I will help you, I will uphold you with my righteous right hand.',
+                verseZh: '你不要害怕，因为我与你同在；不要惊惶，因为我是你的神。我必坚固你，我必帮助你，我必用我公义的右手扶持你。'
+            },
+            { 
+                letter: 'G', 
+                word: 'GIVE THANKS', 
+                reference: '1 Thessalonians 5:18', 
+                referenceZh: '帖撒罗尼迦前书 5:18', 
+                verse: 'Give thanks in all circumstances; for this is the will of God in Christ Jesus for you.',
+                verseZh: '凡事谢恩，因为这是神在基督耶稣里向你们所定的旨意。'
+            },
+            { 
+                letter: 'H', 
+                word: 'HOPE', 
+                reference: 'Jeremiah 29:11', 
+                referenceZh: '耶利米书 29:11', 
+                verse: 'For I know the plans I have for you, declares the Lord, plans for welfare and not for evil, to give you a future and a hope.',
+                verseZh: '我知道我向你们所怀的意念是赐平安的意念，不是降灾祸的意念，要叫你们末后有指望。'
+            },
+            { 
+                letter: 'I', 
+                word: 'INTEGRITY', 
+                reference: 'Proverbs 10:9', 
+                referenceZh: '箴言 10:9', 
+                verse: 'Whoever walks in integrity walks securely, but he who makes his ways crooked will be found out.',
+                verseZh: '行正直路的，步步安稳；走弯曲道的，必致败露。'
+            },
+            { 
+                letter: 'J', 
+                word: 'JOY', 
+                reference: 'Nehemiah 8:10', 
+                referenceZh: '尼希米记 8:10', 
+                verse: 'Do not grieve, for the joy of the Lord is your strength.',
+                verseZh: '你们不要忧愁，因靠耶和华而得的喜乐是你们的力量。'
+            },
+            { 
+                letter: 'K', 
+                word: 'KINGDOM', 
+                reference: 'Matthew 6:33', 
+                referenceZh: '马太福音 6:33', 
+                verse: 'But seek first the kingdom of God and his righteousness, and all these things will be added to you.',
+                verseZh: '你们要先求他的国和他的义，这些东西都要加给你们了。'
+            },
+            { 
+                letter: 'L', 
+                word: 'LOVE', 
+                reference: '1 John 4:19', 
+                referenceZh: '约翰一书 4:19', 
+                verse: 'We love because he first loved us.',
+                verseZh: '我们爱，因为神先爱我们。'
+            },
+            { 
+                letter: 'M', 
+                word: 'MERCY', 
+                reference: 'Lamentations 3:22-23', 
+                referenceZh: '耶利米哀歌 3:22-23', 
+                verse: 'The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.',
+                verseZh: '我们不致消灭，是出于耶和华诸般的慈爱，因他的怜悯全然不断。每早晨都是新的；你的诚实极其广大！'
+            },
+            { 
+                letter: 'N', 
+                word: 'NEAR TO GOD', 
+                reference: 'James 4:8', 
+                referenceZh: '雅各书 4:8', 
+                verse: 'Draw near to God, and he will draw near to you.',
+                verseZh: '你们亲近神，神就必亲近你们。'
+            },
+            { 
+                letter: 'O', 
+                word: 'OBEY', 
+                reference: 'Ephesians 6:1', 
+                referenceZh: '以弗所书 6:1', 
+                verse: 'Children, obey your parents in the Lord, for this is right.',
+                verseZh: '你们作儿女的，要在主里听从父母，这是理所当然的。'
+            },
+            { 
+                letter: 'P', 
+                word: 'PRAISE', 
+                reference: 'Psalm 150:6', 
+                referenceZh: '诗篇 150:6', 
+                verse: 'Let everything that has breath praise the Lord. Praise the Lord!',
+                verseZh: '凡有气息的都要赞美耶和华！你们要赞美耶和华！'
+            },
+            { 
+                letter: 'Q', 
+                word: 'QUIET', 
+                reference: '1 Thessalonians 4:11', 
+                referenceZh: '帖撒罗尼迦前书 4:11', 
+                verse: 'Make it your ambition to lead a quiet life: You should mind your own business and work with your hands.',
+                verseZh: '又要立志作安静人，办自己的事，亲手作工，正如我们从前所吩咐你们的。'
+            },
+            { 
+                letter: 'R', 
+                word: 'REJOICE', 
+                reference: 'Philippians 4:4', 
+                referenceZh: '腓立比书 4:4', 
+                verse: 'Rejoice in the Lord always; again I will say, rejoice.',
+                verseZh: '你们要靠主常常喜乐。我再说，你们要喜乐。'
+            },
+            { 
+                letter: 'S', 
+                word: 'STRENGTH', 
+                reference: 'Philippians 4:13', 
+                referenceZh: '腓立比书 4:13', 
+                verse: 'I can do all things through him who strengthens me.',
+                verseZh: '我靠着那加给我力量的，凡事都能做。'
+            },
+            { 
+                letter: 'T', 
+                word: 'TRUST', 
+                reference: 'Proverbs 3:5-6', 
+                referenceZh: '箴言 3:5-6', 
+                verse: 'Trust in the Lord with all your heart, and do not lean on your own understanding. In all your ways acknowledge him, and he will make straight your paths.',
+                verseZh: '你要专心仰赖耶和华，不可倚靠自己的聪明，在你一切所行的事上都要认定他，他必指引你的路。'
+            },
+            { 
+                letter: 'U', 
+                word: 'UNDERSTAND', 
+                reference: 'Proverbs 2:6', 
+                referenceZh: '箴言 2:6', 
+                verse: 'For the Lord gives wisdom; from his mouth come knowledge and understanding;',
+                verseZh: '因为耶和华赐人智慧；知识和聪明都由他口而出。'
+            },
+            { 
+                letter: 'V', 
+                word: 'VICTORIOUS LIFE', 
+                reference: '1 Corinthians 15:57', 
+                referenceZh: '哥林多前书 15:57', 
+                verse: 'But thanks be to God, who gives us the victory through our Lord Jesus Christ.',
+                verseZh: '感谢神，使我们藉着我们的主耶稣基督得胜。'
+            },
+            { 
+                letter: 'W', 
+                word: 'WORD', 
+                reference: 'Psalm 119:105', 
+                referenceZh: '诗篇 119:105', 
+                verse: 'Your word is a lamp to my feet and a light to my path.',
+                verseZh: '你的话是我脚前的灯，是我路上的光。'
+            },
+            { 
+                letter: 'X', 
+                word: 'EXALT', 
+                reference: 'Psalm 34:3', 
+                referenceZh: '诗篇 34:3', 
+                verse: 'Oh, magnify the Lord with me, and let us exalt his name together!',
+                verseZh: '你们和我当称耶和华发大，一同高举他的名。'
+            },
+            { 
+                letter: 'Y', 
+                word: 'YIELD', 
+                reference: 'Romans 6:13', 
+                referenceZh: '罗马书 6:13', 
+                verse: 'Do not present your members to sin as instruments for unrighteousness, but yield yourselves to God as those who have been brought from death to life.',
+                verseZh: '也不要将你们的肢体献给罪作不义的器具；倒要像从死里复活的人，将自己献给神，并将肢体作义的器具献给神。'
+            },
+            { 
+                letter: 'Z', 
+                word: 'ZEAL', 
+                reference: 'Romans 12:11', 
+                referenceZh: '罗马书 12:11', 
+                verse: 'Never be lacking in zeal, but keep your spiritual fervor, serving the Lord.',
+                verseZh: '殷勤不可懒惰。要心里火热，常常服侍主。'
+            }
+        ];
+
+        const positiveQuotes = [
+            "You are awesome! Let your light shine!",
+            "Fantastic job! Keep rejoicing in His word!",
+            "Wonderful! You are doing amazing!",
+            "Spot on! Blessed are those who seek Him!",
+            "You got it! Keep growing in wisdom and truth!",
+            "Outstanding! God's Word is a lamp to your feet!",
+            "Splendid guess! Keep moving forward in faith!"
+        ];
+
+        let currentIndex = 0;
+        let currentWord = "";
+        let currentLetter = "";
+        let currentVerse = "";
+        let currentReference = "";
+        let currentVerseZh = "";
+        let currentReferenceZh = "";
+        let guessedLetters = new Set();
+        const maxLives = 6;
+        let lives = maxLives;
+
+        // Visual Effects State
+        const canvas = document.getElementById('animationCanvas');
+        const ctx = canvas.getContext('2d');
+        let elements = [];
+        let ambientStars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initializeAmbientStars();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Constant background stars
+        function initializeAmbientStars() {
+            ambientStars = [];
+            for (let i = 0; i < 35; i++) {
+                ambientStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.015 + 0.005
+                });
+            }
+        }
+
+        // Initialize Core Game logic
+        function initWord() {
+            const data = vocabulary[currentIndex];
+            currentWord = data.word.toUpperCase();
+            currentLetter = data.letter;
+            currentVerse = data.verse;
+            currentReference = data.reference;
+            currentVerseZh = data.verseZh;
+            currentReferenceZh = data.referenceZh;
+            guessedLetters.clear();
+            lives = maxLives;
+
+            // UI Adjustments
+            document.getElementById('hintLetter').innerText = currentLetter;
+            document.getElementById('progressText').innerText = `Word ${currentIndex + 1} of ${vocabulary.length}`;
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            // Show Hangman and Hide Scripture Verse Card during active gameplay
+            document.getElementById('hangmanBox').style.display = 'flex';
+            document.getElementById('verseCard').style.display = 'none';
+
+            // Clear and completely collapse banner spacing when game is running
+            const banner = document.getElementById('bannerMessage');
+            banner.style.display = "none";
+            banner.className = "banner-message";
+            banner.innerText = "";
+
+            renderHangmanVisuals();
+            renderWordBlanks();
+            renderKeyboard();
+        }
+
+        function renderHangmanVisuals() {
+            const hangmanPartIds = [
+                'part-head',
+                'part-torso',
+                'part-left-arm',
+                'part-right-arm',
+                'part-left-leg',
+                'part-right-leg'
+            ];
+
+            const wrongGuessCount = maxLives - lives;
+
+            hangmanPartIds.forEach((id, index) => {
+                const part = document.getElementById(id);
+                if (part) {
+                    if (index < wrongGuessCount) {
+                        part.classList.add('visible');
+                    } else {
+                        part.classList.remove('visible');
+                    }
+                }
+            });
+        }
+
+        function renderWordBlanks() {
+            const container = document.getElementById('wordDisplay');
+            container.innerHTML = '';
+
+            currentWord.split('').forEach(char => {
+                const element = document.createElement('span');
+                if (char === ' ') {
+                    element.className = 'word-space';
+                    element.innerHTML = '&nbsp;';
+                } else {
+                    element.className = 'word-letter';
+                    if (guessedLetters.has(char)) {
+                        element.innerText = char;
+                        element.classList.add('correct');
+                    } else {
+                        element.innerText = '';
+                    }
+                }
+                container.appendChild(element);
+            });
+        }
+
+        function renderKeyboard() {
+            const container = document.getElementById('keyboard');
+            container.innerHTML = '';
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+            alphabet.split('').forEach(char => {
+                const btn = document.createElement('button');
+                btn.className = 'key';
+                btn.innerText = char;
+                btn.id = `key-${char}`;
+                btn.onclick = () => makeGuess(char);
+                container.appendChild(btn);
+            });
+        }
+
+        function makeGuess(letter) {
+            if (guessedLetters.has(letter) || lives <= 0) return;
+
+            guessedLetters.add(letter);
+            const keyBtn = document.getElementById(`key-${letter}`);
+
+            if (currentWord.includes(letter)) {
+                keyBtn.classList.add('correct-guess');
+                keyBtn.disabled = true;
+                renderWordBlanks();
+                checkWinCondition();
+            } else {
+                keyBtn.classList.add('wrong-guess');
+                keyBtn.disabled = true;
+                lives--;
+                renderHangmanVisuals();
+                triggerWrongSparkle(keyBtn);
+                if (lives <= 0) {
+                    revealLoss();
+                }
+            }
+        }
+
+        function triggerWrongSparkle(buttonElement) {
+            const rect = buttonElement.getBoundingClientRect();
+            const x = rect.left + rect.width/2;
+            const y = rect.top + rect.height/2;
+            for(let i=0; i<6; i++){
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 2 + 1;
+                elements.push({
+                    type: 'sparkle',
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    color: '#e74c3c',
+                    size: Math.random() * 2 + 2
+                });
+            }
+        }
+
+        function showScriptureCard() {
+            // Hide hangman and reveal the styled bilingual Scripture Memorization Card
+            document.getElementById('hangmanBox').style.display = 'none';
+            
+            const verseCard = document.getElementById('verseCard');
+            document.getElementById('verseReference').innerText = `${currentReference} | ${currentReferenceZh}`;
+            document.getElementById('verseText').innerText = `"${currentVerse}"`;
+            document.getElementById('verseTextZh').innerText = `"${currentVerseZh}"`;
+            verseCard.style.display = 'flex';
+        }
+
+        function checkWinCondition() {
+            const cleanWordLetters = currentWord.replace(/\s/g, '').split('');
+            const solved = cleanWordLetters.every(l => guessedLetters.has(l));
+
+            if (solved) {
+                document.querySelectorAll('.key').forEach(btn => btn.disabled = true);
+
+                const randQuote = positiveQuotes[Math.floor(Math.random() * positiveQuotes.length)];
+                const banner = document.getElementById('bannerMessage');
+                banner.innerText = `✨ ${randQuote}\n"${currentLetter} is for ${currentWord}!"`;
+                banner.className = "banner-message show win";
+                banner.style.display = "flex"; // Make visible when game ends
+
+                // Show the beautiful verses
+                showScriptureCard();
+
+                triggerCelebrationFX();
+                document.getElementById('nextBtn').style.display = 'inline-flex';
+            }
+        }
+
+        function revealLoss() {
+            document.querySelectorAll('.key').forEach(btn => btn.disabled = true);
+
+            const container = document.getElementById('wordDisplay');
+            container.innerHTML = '';
+            currentWord.split('').forEach(char => {
+                const element = document.createElement('span');
+                if (char === ' ') {
+                    element.className = 'word-space';
+                    element.innerHTML = '&nbsp;';
+                } else {
+                    element.className = 'word-letter';
+                    element.innerText = char;
+                    element.style.color = 'var(--error)';
+                    element.style.borderBottomColor = 'var(--error)';
+                }
+                container.appendChild(element);
+            });
+
+            const banner = document.getElementById('bannerMessage');
+            banner.innerText = `Keep shining! The word was "${currentWord}".\nLet's learn the verse together!`;
+            banner.className = "banner-message show lose";
+            banner.style.display = "flex"; // Make visible when game ends
+
+            // Show the beautiful verses even on loss to facilitate learning
+            showScriptureCard();
+
+            document.getElementById('nextBtn').style.display = 'inline-flex';
+        }
+
+        function advanceGame() {
+            currentIndex++;
+            if (currentIndex >= vocabulary.length) {
+                showVictoryModal();
+                triggerGrandFinaleFX();
+            } else {
+                initWord();
+            }
+        }
+
+        function showVictoryModal() {
+            document.getElementById('victoryModal').style.display = 'flex';
+        }
+
+        function closeVictoryModal() {
+            document.getElementById('victoryModal').style.display = 'none';
+            restartEntireGame();
+        }
+
+        function restartEntireGame() {
+            currentIndex = 0;
+            initWord();
+        }
+
+        // --- VISUAL EFFECTS ENGINE ---
+
+        function triggerCelebrationFX() {
+            // Cap active particles to prevent mobile lag
+            if (elements.length > 150) elements = [];
+
+            // 1. Instant glittering 4-pointed stars burst from the solved word location (center of screen)
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3.5 + 1.5;
+                elements.push({
+                    type: 'glitter-star',
+                    x: canvas.width / 2,
+                    y: canvas.height * 0.45,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 6 + 5,
+                    alpha: 1.0,
+                    spin: (Math.random() - 0.5) * 0.08,
+                    angle: Math.random() * Math.PI,
+                    color: i % 2 === 0 ? '#ffd700' : '#ffffff' // Alternate gold and silver/white
+                });
+            }
+
+            // 2. Instant Firework shell detonations (2 immediate colorful bursts in the foreground!)
+            explodeRocket(canvas.width * 0.35, canvas.height * 0.35, `hsl(${Math.random() * 360}, 100%, 70%)`);
+            explodeRocket(canvas.width * 0.65, canvas.height * 0.35, `hsl(${Math.random() * 360}, 100%, 70%)`);
+
+            // 3. Delayed rocket launches from the bottom
+            for (let i = 0; i < 2; i++) {
+                setTimeout(() => {
+                    launchRocket();
+                }, i * 350 + 200);
+            }
+
+            createAngel();
+        }
+
+        function triggerGrandFinaleFX() {
+            elements = [];
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    launchRocket();
+                    createAngel();
+                }, i * 250);
+            }
+        }
+
+        function launchRocket() {
+            if (elements.length > 120) return; // Prevent performance choke on older devices
+            const startX = Math.random() * (canvas.width - 200) + 100;
+            const targetY = Math.random() * (canvas.height * 0.3) + 80;
+            elements.push({
+                type: 'rocket',
+                x: startX,
+                y: canvas.height,
+                targetY: targetY,
+                vy: - (Math.random() * 3 + 6),
+                color: `hsl(${Math.random() * 360}, 100%, 65%)`
+            });
+        }
+
+        function explodeRocket(x, y, color) {
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3.5 + 1.2;
+                elements.push({
+                    type: 'particle',
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    decay: Math.random() * 0.015 + 0.015,
+                    color: color
+                });
+            }
+        }
+
+        function createAngel() {
+            const goRight = Math.random() > 0.5;
+            elements.push({
+                type: 'angel',
+                x: goRight ? -100 : canvas.width + 100,
+                y: Math.random() * (canvas.height * 0.25) + 60,
+                vx: goRight ? (Math.random() * 1.0 + 1.0) : -(Math.random() * 1.0 + 1.0),
+                phase: Math.random() * 100,
+                scale: Math.random() * 0.12 + 0.52
+            });
+        }
+
+        function drawAngel(ctx, x, y, scale, phase) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            // Glowing golden halo
+            ctx.beginPath();
+            ctx.ellipse(0, -52, 18, 6, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffa500';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(0, -52, 18, 6, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const wingOffset = Math.sin(phase) * 12;
+            
+            // Higher opacity wings with bold sky-blue borders
+            ctx.fillStyle = 'rgba(215, 240, 255, 0.95)';
+            ctx.strokeStyle = '#4a90e2';
+            ctx.lineWidth = 3;
+
+            // Left Wing
+            ctx.beginPath();
+            ctx.moveTo(-10, -20);
+            ctx.bezierCurveTo(-55, -55 + wingOffset, -65, -10 + wingOffset, -10, 0);
+            ctx.fill();
+            ctx.stroke();
+
+            // Right Wing
+            ctx.beginPath();
+            ctx.moveTo(10, -20);
+            ctx.bezierCurveTo(55, -55 + wingOffset, 65, -10 + wingOffset, 10, 0);
+            ctx.fill();
+            ctx.stroke();
+
+            // Beautiful White Robe with a distinct border outline
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#b2c2d4';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(0, -20);
+            ctx.lineTo(-24, 35);
+            ctx.lineTo(24, 35);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Sashes/Ribbon
+            ctx.fillStyle = '#2980b9';
+            ctx.beginPath();
+            ctx.moveTo(-8, 5);
+            ctx.lineTo(-20, 25);
+            ctx.lineTo(-12, 28);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(8, 5);
+            ctx.lineTo(20, 25);
+            ctx.lineTo(12, 28);
+            ctx.closePath();
+            ctx.fill();
+
+            // Head / Skin
+            ctx.fillStyle = '#ffe0bd';
+            ctx.beginPath();
+            ctx.arc(0, -26, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#e0b388';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Friendly cartoon eyes and smile (Clear & high contrast)
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            
+            // Left eye (happy curved)
+            ctx.beginPath();
+            ctx.arc(-4, -27, 2, 0, Math.PI, true);
+            ctx.stroke();
+
+            // Right eye (happy curved)
+            ctx.beginPath();
+            ctx.arc(4, -27, 2, 0, Math.PI, true);
+            ctx.stroke();
+
+            // Sweet happy smile
+            ctx.strokeStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(0, -23, 3.5, 0, Math.PI);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function updateAndDrawFX() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw constant ambient background stars
+            for (let i = 0; i < ambientStars.length; i++) {
+                const star = ambientStars[i];
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0) {
+                    star.speed = -star.speed;
+                }
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, Math.min(1, star.alpha));
+                ctx.fillStyle = '#fff69b';
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            for (let i = elements.length - 1; i >= 0; i--) {
+                const el = elements[i];
+
+                if (el.type === 'sparkle') {
+                    el.x += el.vx;
+                    el.y += el.vy;
+                    el.alpha -= 0.03;
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, el.alpha);
+                    ctx.fillStyle = el.color;
+                    ctx.beginPath();
+                    ctx.arc(el.x, el.y, el.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    if (el.alpha <= 0) elements.splice(i, 1);
+                }
+
+                else if (el.type === 'glitter-star') {
+                    el.x += el.vx;
+                    el.y += el.vy;
+                    el.vy += 0.04; // Gentle gravity drift
+                    el.angle += el.spin;
+                    el.alpha -= 0.012; // Slow fade for a glittering trail
+                    
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, el.alpha);
+                    ctx.fillStyle = el.color;
+                    ctx.shadowColor = el.color;
+                    ctx.shadowBlur = 8;
+                    ctx.translate(el.x, el.y);
+                    ctx.rotate(el.angle);
+                    
+                    // Draw a gorgeous 4-point glittering star
+                    ctx.beginPath();
+                    for (let s = 0; s < 4; s++) {
+                        ctx.lineTo(0, -el.size);
+                        ctx.rotate(Math.PI / 4);
+                        ctx.lineTo(0, -el.size / 3.5);
+                        ctx.rotate(Math.PI / 4);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    if (el.alpha <= 0) elements.splice(i, 1);
+                }
+                
+                else if (el.type === 'rocket') {
+                    el.y += el.vy;
+                    // Spark trail optimized with mathematical skip (only render spark every other frame)
+                    if (Math.random() < 0.5) {
+                        elements.push({
+                            type: 'sparkle',
+                            x: el.x,
+                            y: el.y,
+                            vx: (Math.random() - 0.5) * 1.5,
+                            vy: 1,
+                            alpha: 0.8,
+                            color: '#f39c12',
+                            size: Math.random() * 2 + 1
+                        });
+                    }
+
+                    if (el.y <= el.targetY || el.vy >= 0) {
+                        explodeRocket(el.x, el.y, el.color);
+                        elements.splice(i, 1);
+                    }
+                }
+                
+                else if (el.type === 'particle') {
+                    el.x += el.vx;
+                    el.y += el.vy;
+                    el.vy += 0.08;
+                    el.alpha -= el.decay;
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, el.alpha);
+                    ctx.fillStyle = el.color;
+                    ctx.beginPath();
+                    ctx.arc(el.x, el.y, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    if (el.alpha <= 0) elements.splice(i, 1);
+                }
+                
+                else if (el.type === 'angel') {
+                    el.x += el.vx;
+                    el.phase += 1;
+                    
+                    drawAngel(ctx, el.x, el.y, el.scale, el.phase * 0.12);
+
+                    // Drop twinkling star trails occasionally (throttled to save CPU)
+                    if (Math.random() < 0.1) {
+                        elements.push({
+                            type: 'glitter-star',
+                            x: el.x + (Math.random() - 0.5) * 20,
+                            y: el.y + 15,
+                            vx: (Math.random() - 0.5) * 1,
+                            vy: Math.random() * 1 + 0.5,
+                            size: Math.random() * 4 + 3,
+                            alpha: 0.8,
+                            spin: (Math.random() - 0.5) * 0.08,
+                            angle: Math.random() * Math.PI,
+                            color: '#ffd700'
+                        });
+                    }
+
+                    if ((el.vx > 0 && el.x > canvas.width + 150) || (el.vx < 0 && el.x < -150)) {
+                        elements.splice(i, 1);
+                    }
+                }
+            }
+
+            requestAnimationFrame(updateAndDrawFX);
+        }
+
+        // Setup Init
+        window.onload = function () {
+            resizeCanvas();
+            initWord();
+            updateAndDrawFX();
+        };
+    </script>
+</body>
+</html>
