@@ -85,7 +85,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 1.25rem;
+            padding: 1rem;
             width: 100%;
             border-radius: 20px;
             font-weight: 700;
@@ -109,17 +109,17 @@
         }
 
         .zh-card-text {
-            font-size: clamp(18px, 2.4vw, 24px);
+            font-size: clamp(16px, 2.2vw, 22px);
             color: #172554;
             margin-top: 6px;
-            font-weight: 700;
+            font-weight: 900;
             line-height: 1.3;
         }
 
         .en-card-text {
-            font-size: clamp(14px, 1.8vw, 18px);
+            font-size: clamp(13px, 1.6vw, 17px);
             color: #1e40af;
-            font-weight: 600;
+            font-weight: 700;
             line-height: 1.3;
         }
 
@@ -145,7 +145,7 @@
         <p class="text-yellow-300 font-black text-2xl tracking-widest mb-8 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
         
         <div class="mb-10 text-white text-base space-y-3 max-w-xl bg-white/10 backdrop-blur-md p-6 rounded-[30px] border-4 border-white/30 shadow-2xl">
-            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> to test your memory!</p>
+            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> to test your bilingual memory!</p>
             <p>6 Dynamic Modes: References, Full Verses, Halves, Fill Blanks, Authors & True/False.</p>
             <p class="text-xs font-black uppercase bg-blue-900/60 py-2.5 px-4 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
         </div>
@@ -409,6 +409,7 @@ function triggerQuiz(block) {
     let optionRawList = [];
 
     const others = BIBLE_DATA.filter(x => x.ref !== item.ref);
+    const shuffledOthers = shuffle(others);
 
     if (mode === 'ref_to_verse') {
         badge.innerText = "Mode: Find the Verse";
@@ -416,17 +417,17 @@ function triggerQuiz(block) {
         qSub = `请 问 哪 一 节 经 文 是 「${item.ref}」？`;
         correctAnswer = item.en + " | " + item.zh;
         
-        const wrongItems = shuffle(others).slice(0, 3);
+        const wrongItems = shuffledOthers.slice(0, 3);
         optionRawList = [correctAnswer, ...wrongItems.map(w => w.en + " | " + w.zh)];
     } 
     else if (mode === 'verse_to_ref') {
         badge.innerText = "Mode: Find the Reference";
         qTitle = `Match Verse to Reference:`;
         qSub = `「${item.en}」 (${item.zh})`;
-        correctAnswer = item.ref;
+        correctAnswer = item.ref + " | " + item.topic;
         
-        const wrongItems = shuffle(others).slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongItems.map(w => w.ref)];
+        const wrongItems = shuffledOthers.slice(0, 3);
+        optionRawList = [correctAnswer, ...wrongItems.map(w => w.ref + " | " + w.topic)];
     }
     else if (mode === 'second_half') {
         badge.innerText = "Mode: Complete 2nd Half";
@@ -436,12 +437,13 @@ function triggerQuiz(block) {
         const mid = Math.floor(words.length / 2);
         qTextEn.innerText = `[Top Half]: ` + words.slice(0, mid).join(' ') + '...';
         qTextZh.innerText = item.zh;
-        correctAnswer = words.slice(mid).join(' ');
+        correctAnswer = '...' + words.slice(mid).join(' ') + " | " + item.zh;
         
-        const wrongItems = shuffle(others).slice(0, 3);
+        const wrongItems = shuffledOthers.slice(0, 3);
         optionRawList = [correctAnswer, ...wrongItems.map(w => {
             const wWords = w.en.split(' ');
-            return wWords.slice(Math.floor(wWords.length/2)).join(' ');
+            const wMid = Math.floor(wWords.length / 2);
+            return '...' + wWords.slice(wMid).join(' ') + " | " + w.zh;
         })];
     }
     else if (mode === 'first_half') {
@@ -452,31 +454,38 @@ function triggerQuiz(block) {
         const mid = Math.floor(words.length / 2);
         qTextEn.innerText = `...` + words.slice(mid).join(' ');
         qTextZh.innerText = item.zh;
-        correctAnswer = words.slice(0, mid).join(' ');
+        correctAnswer = words.slice(0, mid).join(' ') + '... | ' + item.zh;
         
-        const wrongItems = shuffle(others).slice(0, 3);
+        const wrongItems = shuffledOthers.slice(0, 3);
         optionRawList = [correctAnswer, ...wrongItems.map(w => {
             const wWords = w.en.split(' ');
-            return wWords.slice(0, Math.floor(wWords.length/2)).join(' ');
+            const wMid = Math.floor(wWords.length / 2);
+            return wWords.slice(0, wMid).join(' ') + '... | ' + w.zh;
         })];
     }
     else if (mode === 'true_false') {
         badge.innerText = "Mode: True or False";
         const isTrue = Math.random() > 0.5;
-        const matchItem = isTrue ? item : shuffle(others)[0];
+        const matchItem = isTrue ? item : shuffledOthers[0];
         qTitle = `True or False? Does ${item.ref} match this verse?`;
         qSub = `「${matchItem.en}」`;
         correctAnswer = isTrue ? "TRUE (正确)" : "FALSE (错误)";
-        optionRawList = ["TRUE (正确)", "FALSE (错误)"];
+        optionRawList = [
+            "TRUE (正确) | 是 的 ， 经 文 相 符",
+            "FALSE (错误) | 不 是 ， 经 文 不 符"
+        ];
+        // If false is correct, swap correct answer text matching
+        if (!isTrue) correctAnswer = "FALSE (错误) | 不 是 ， 经 文 不 符";
+        else correctAnswer = "TRUE (正确) | 是 的 ， 经 文 相 符";
     }
     else if (mode === 'author') {
         badge.innerText = "Mode: Who Wrote/Spoke This?";
         qTitle = `Who spoke or wrote ${item.ref}?`;
         qSub = `这 节 经 文 是 谁 说 的 / 写 的 ？`;
-        correctAnswer = item.author;
+        correctAnswer = item.author + " | 作者 / 说话者";
         const authors = ['Paul', 'Jesus', 'David', 'John', 'Solomon', 'Isaiah', 'Moses', 'God', 'Jeremiah', 'Nehemiah'];
         const wrongAuthors = shuffle(authors.filter(a => a !== item.author)).slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongAuthors];
+        optionRawList = [correctAnswer, ...wrongAuthors.map(a => a + " | 作者 / 说话者")];
     }
 
     if (mode !== 'second_half' && mode !== 'first_half') {
@@ -494,7 +503,7 @@ function triggerQuiz(block) {
         if (parts.length === 2) {
             btn.innerHTML = `<span class="en-card-text">${parts[0]}</span><span class="zh-card-text">${parts[1]}</span>`;
         } else {
-            btn.innerHTML = `<span class="zh-card-text" style="font-size: clamp(20px, 2.5vw, 28px);">${opt}</span>`;
+            btn.innerHTML = `<span class="zh-card-text" style="font-size: clamp(18px, 2.2vw, 26px);">${opt}</span>`;
         }
 
         btn.onclick = () => {
@@ -523,7 +532,7 @@ function triggerQuiz(block) {
                 feedback.className = "p-5 rounded-2xl border-4 border-red-500 bg-red-950/80 shrink-0 text-center shadow-xl";
                 document.getElementById('feedback-title').innerText = "🕳️ PITFALL!";
                 document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-1 text-red-400";
-                document.getElementById('feedback-detail').innerText = `Correct Answer: ${correctAnswer}`;
+                document.getElementById('feedback-detail').innerText = `Correct Answer: ${correctAnswer.split(' | ')[0]}`;
                 
                 pendingQueue.push({ item: item, counter: 3 });
 
@@ -620,14 +629,12 @@ function update() {
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Background sky gradient
     let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grad.addColorStop(0, '#3b82f6');
     grad.addColorStop(1, '#93c5fd');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Clouds
     ctx.fillStyle = "rgba(255,255,255,0.6)";
     for(let i=0; i<25; i++) {
         ctx.beginPath(); 
@@ -638,13 +645,11 @@ function render() {
     ctx.save();
     ctx.translate(state.cameraX, 0);
     
-    // Ground
     ctx.fillStyle = "#16a34a"; 
     ctx.fillRect(-5000, state.groundY, 60000, 30);
     ctx.fillStyle = "#9a3412"; 
     ctx.fillRect(-5000, state.groundY + 30, 60000, 200);
 
-    // Blocks
     blocks.forEach(b => { 
         if (!b.active && b.type === 'quiz') {
             ctx.fillStyle = '#475569'; 
@@ -667,23 +672,21 @@ function render() {
         ctx.fillText('?', b.x + b.w/2, b.y + b.h/2 + 16);
     });
     
-    // Player Character
     ctx.save();
     ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
     if (!player.facingRight) ctx.scale(-1, 1);
     
     const walk = Math.sin(player.frame * 2) * 6;
-    ctx.fillStyle = "#ef4444"; // Cap/Shirt
+    ctx.fillStyle = "#ef4444";
     ctx.fillRect(-22, -45 + walk, 44, 20);
-    ctx.fillStyle = "#ffdbac"; // Face
+    ctx.fillStyle = "#ffdbac";
     ctx.fillRect(-18, -25 + walk, 36, 32);
-    ctx.fillStyle = "#ef4444"; // Overalls
+    ctx.fillStyle = "#ef4444";
     ctx.fillRect(-20, 7 + walk, 40, 28);
-    ctx.fillStyle = "#2563eb"; // Pants
+    ctx.fillStyle = "#2563eb";
     ctx.fillRect(-20, 22 + walk, 40, 16);
     ctx.restore();
 
-    // Fireworks particles
     fireworks.forEach((f, index) => {
         f.x += f.vx;
         f.y += f.vy;
