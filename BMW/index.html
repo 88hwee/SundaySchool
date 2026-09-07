@@ -85,7 +85,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 1rem;
+            padding: 1.25rem 1rem;
             width: 100%;
             border-radius: 20px;
             font-weight: 700;
@@ -109,18 +109,18 @@
         }
 
         .zh-card-text {
-            font-size: clamp(16px, 2.2vw, 22px);
+            font-size: clamp(17px, 2.2vw, 24px);
             color: #172554;
-            margin-top: 6px;
+            margin-top: 8px;
             font-weight: 900;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         .en-card-text {
-            font-size: clamp(13px, 1.6vw, 17px);
+            font-size: clamp(14px, 1.7vw, 19px);
             color: #1e40af;
             font-weight: 700;
-            line-height: 1.3;
+            line-height: 1.35;
         }
 
         #hud {
@@ -145,8 +145,8 @@
         <p class="text-yellow-300 font-black text-2xl tracking-widest mb-8 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
         
         <div class="mb-10 text-white text-base space-y-3 max-w-xl bg-white/10 backdrop-blur-md p-6 rounded-[30px] border-4 border-white/30 shadow-2xl">
-            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> to test your bilingual memory!</p>
-            <p>6 Dynamic Modes: References, Full Verses, Halves, Fill Blanks, Authors & True/False.</p>
+            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> for full bilingual MCQ challenge!</p>
+            <p>Every option displays complete English on top and complete Chinese on the bottom.</p>
             <p class="text-xs font-black uppercase bg-blue-900/60 py-2.5 px-4 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
         </div>
 
@@ -405,8 +405,8 @@ function triggerQuiz(block) {
 
     let qTitle = "";
     let qSub = "";
-    let correctAnswer = "";
-    let optionRawList = [];
+    let correctAnswerObj = item;
+    let rawOptionsList = [];
 
     const others = BIBLE_DATA.filter(x => x.ref !== item.ref);
     const shuffledOthers = shuffle(others);
@@ -415,36 +415,26 @@ function triggerQuiz(block) {
         badge.innerText = "Mode: Find the Verse";
         qTitle = `Which verse matches ${item.ref} (${item.topic})?`;
         qSub = `请 问 哪 一 节 经 文 是 「${item.ref}」？`;
-        correctAnswer = item.en + " | " + item.zh;
         
-        const wrongItems = shuffledOthers.slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongItems.map(w => w.en + " | " + w.zh)];
+        rawOptionsList = [item, shuffledOthers[0], shuffledOthers[1], shuffledOthers[2]];
     } 
     else if (mode === 'verse_to_ref') {
         badge.innerText = "Mode: Find the Reference";
         qTitle = `Match Verse to Reference:`;
         qSub = `「${item.en}」 (${item.zh})`;
-        correctAnswer = item.ref + " | " + item.topic;
         
-        const wrongItems = shuffledOthers.slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongItems.map(w => w.ref + " | " + w.topic)];
+        rawOptionsList = [item, shuffledOthers[0], shuffledOthers[1], shuffledOthers[2]];
     }
     else if (mode === 'second_half') {
-        badge.innerText = "Mode: Complete 2nd Half";
+        badge.innerText = "Mode: Complete Verse";
         qTitle = `Complete the second half for ${item.ref}:`;
         qSub = `经 文 下 半 句 是 什 么 ？`;
         const words = item.en.split(' ');
         const mid = Math.floor(words.length / 2);
         qTextEn.innerText = `[Top Half]: ` + words.slice(0, mid).join(' ') + '...';
         qTextZh.innerText = item.zh;
-        correctAnswer = '...' + words.slice(mid).join(' ') + " | " + item.zh;
         
-        const wrongItems = shuffledOthers.slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongItems.map(w => {
-            const wWords = w.en.split(' ');
-            const wMid = Math.floor(wWords.length / 2);
-            return '...' + wWords.slice(wMid).join(' ') + " | " + w.zh;
-        })];
+        rawOptionsList = [item, shuffledOthers[0], shuffledOthers[1], shuffledOthers[2]];
     }
     else if (mode === 'first_half') {
         badge.innerText = "Mode: Fill in 1st Half";
@@ -454,61 +444,88 @@ function triggerQuiz(block) {
         const mid = Math.floor(words.length / 2);
         qTextEn.innerText = `...` + words.slice(mid).join(' ');
         qTextZh.innerText = item.zh;
-        correctAnswer = words.slice(0, mid).join(' ') + '... | ' + item.zh;
         
-        const wrongItems = shuffledOthers.slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongItems.map(w => {
-            const wWords = w.en.split(' ');
-            const wMid = Math.floor(wWords.length / 2);
-            return wWords.slice(0, wMid).join(' ') + '... | ' + w.zh;
-        })];
+        rawOptionsList = [item, shuffledOthers[0], shuffledOthers[1], shuffledOthers[2]];
     }
     else if (mode === 'true_false') {
         badge.innerText = "Mode: True or False";
         const isTrue = Math.random() > 0.5;
         const matchItem = isTrue ? item : shuffledOthers[0];
         qTitle = `True or False? Does ${item.ref} match this verse?`;
-        qSub = `「${matchItem.en}」`;
-        correctAnswer = isTrue ? "TRUE (正确)" : "FALSE (错误)";
-        optionRawList = [
-            "TRUE (正确) | 是 的 ， 经 文 相 符",
-            "FALSE (错误) | 不 是 ， 经 文 不 符"
+        qSub = `「${matchItem.en}」\n${matchItem.zh}`;
+        
+        rawOptionsList = [
+            { isTrueOption: true, labelEn: "TRUE (正确)", labelZh: "是 的 ， 经 文 相 符", correct: isTrue },
+            { isTrueOption: true, labelEn: "FALSE (错误)", labelZh: "不 是 ， 经 文 不 符", correct: !isTrue }
         ];
-        // If false is correct, swap correct answer text matching
-        if (!isTrue) correctAnswer = "FALSE (错误) | 不 是 ， 经 文 不 符";
-        else correctAnswer = "TRUE (正确) | 是 的 ， 经 文 相 符";
     }
     else if (mode === 'author') {
         badge.innerText = "Mode: Who Wrote/Spoke This?";
-        qTitle = `Who spoke or wrote ${item.ref}?`;
-        qSub = `这 节 经 文 是 谁 说 的 / 写 的 ？`;
-        correctAnswer = item.author + " | 作者 / 说话者";
+        qTitle = `Who spoke or wrote ${item.ref}? (${item.topic})`;
+        qSub = `这 节 经 文 是 谁 说 的 / 写 的 ？\n「${item.en}」`;
+        
         const authors = ['Paul', 'Jesus', 'David', 'John', 'Solomon', 'Isaiah', 'Moses', 'God', 'Jeremiah', 'Nehemiah'];
         const wrongAuthors = shuffle(authors.filter(a => a !== item.author)).slice(0, 3);
-        optionRawList = [correctAnswer, ...wrongAuthors.map(a => a + " | 作者 / 说话者")];
+        
+        rawOptionsList = [
+            { authorName: item.author, correct: true, obj: item },
+            { authorName: wrongAuthors[0], correct: false, obj: item },
+            { authorName: wrongAuthors[1], correct: false, obj: item },
+            { authorName: wrongAuthors[2], correct: false, obj: item }
+        ];
     }
 
-    if (mode !== 'second_half' && mode !== 'first_half') {
+    if (mode !== 'second_half' && mode !== 'first_half' && mode !== 'true_false' && mode !== 'author') {
+        qTextEn.innerText = qTitle;
+        qTextZh.innerText = qSub;
+    } else if (mode === 'true_false') {
+        qTextEn.innerText = qTitle;
+        qTextZh.innerText = qSub;
+    } else if (mode === 'author') {
         qTextEn.innerText = qTitle;
         qTextZh.innerText = qSub;
     }
 
-    const finalShuffledOptions = shuffle(optionRawList);
+    const finalShuffledOptions = shuffle(rawOptionsList);
 
-    finalShuffledOptions.forEach(opt => {
+    finalShuffledOptions.forEach(optData => {
         const btn = document.createElement('div');
         btn.className = 'option-card';
         
-        const parts = opt.split(' | ');
-        if (parts.length === 2) {
-            btn.innerHTML = `<span class="en-card-text">${parts[0]}</span><span class="zh-card-text">${parts[1]}</span>`;
-        } else {
-            btn.innerHTML = `<span class="zh-card-text" style="font-size: clamp(18px, 2.2vw, 26px);">${opt}</span>`;
+        let isCorrect = false;
+        let displayEn = "";
+        let displayZh = "";
+
+        if (mode === 'ref_to_verse') {
+            displayEn = optData.en;
+            displayZh = optData.zh;
+            isCorrect = (optData.ref === item.ref);
+        } 
+        else if (mode === 'verse_to_ref') {
+            displayEn = `${optData.ref} (${optData.topic})`;
+            displayZh = optData.zh;
+            isCorrect = (optData.ref === item.ref);
         }
+        else if (mode === 'second_half' || mode === 'first_half') {
+            displayEn = optData.en;
+            displayZh = optData.zh;
+            isCorrect = (optData.ref === item.ref);
+        }
+        else if (mode === 'true_false') {
+            displayEn = optData.labelEn;
+            displayZh = optData.labelZh;
+            isCorrect = optData.correct;
+        }
+        else if (mode === 'author') {
+            displayEn = `Author: ${optData.authorName}`;
+            displayZh = optData.correct ? `经 文 作 者 / 说 说 者 (正确)` : `经 文 作 者 / 说 说 者 (错误)`;
+            isCorrect = optData.correct;
+        }
+
+        btn.innerHTML = `<span class="en-card-text">${displayEn}</span><span class="zh-card-text">${displayZh}</span>`;
 
         btn.onclick = () => {
             Array.from(container.children).forEach(b => { b.style.pointerEvents = 'none'; });
-            const isCorrect = (opt === correctAnswer || (mode === 'true_false' && opt.startsWith(correctAnswer.split(' ')[0])));
             
             if (isCorrect) {
                 state.score += 1000;
@@ -532,7 +549,7 @@ function triggerQuiz(block) {
                 feedback.className = "p-5 rounded-2xl border-4 border-red-500 bg-red-950/80 shrink-0 text-center shadow-xl";
                 document.getElementById('feedback-title').innerText = "🕳️ PITFALL!";
                 document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-1 text-red-400";
-                document.getElementById('feedback-detail').innerText = `Correct Answer: ${correctAnswer.split(' | ')[0]}`;
+                document.getElementById('feedback-detail').innerText = `Correct Answer: ${item.ref} — ${item.en}`;
                 
                 pendingQueue.push({ item: item, counter: 3 });
 
