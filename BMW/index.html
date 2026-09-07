@@ -78,7 +78,7 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Option cards designed with larger, highly legible fonts for 12-year-olds */
+        /* Option cards with twice as big text and compact heights */
         .option-card {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
@@ -86,14 +86,14 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 0.6rem 0.8rem;
+            padding: 0.35rem 0.6rem;
             width: 100%;
             height: 100%;
             min-height: 0;
-            border-radius: 16px;
+            border-radius: 14px;
             background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
             color: #1e3a8a;
-            box-shadow: 0 4px 0 #cbd5e1, 0 6px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 3px 0 #cbd5e1, 0 5px 10px rgba(0,0,0,0.15);
             border: 3px solid #3b82f6;
             cursor: pointer;
             overflow: hidden;
@@ -103,7 +103,6 @@
             transform: translateY(-2px);
             border-color: #2563eb;
             background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
-            box-shadow: 0 6px 0 #94a3b8, 0 8px 14px rgba(0,0,0,0.2);
         }
 
         .option-card:active {
@@ -112,26 +111,16 @@
         }
 
         .en-card-text {
-            font-size: clamp(13px, 1.5vw, 17px);
             color: #1e40af;
             font-weight: 700;
-            line-height: 1.25;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            line-height: 1.15;
         }
 
         .zh-card-text {
-            font-size: clamp(14px, 1.7vw, 19px);
             color: #172554;
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: 900;
-            line-height: 1.25;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            line-height: 1.15;
         }
 
         #hud {
@@ -156,7 +145,7 @@
         <p class="text-yellow-300 font-black text-lg tracking-widest mb-5 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
         
         <div class="mb-6 text-white text-xs md:text-sm space-y-1.5 max-w-xl bg-white/10 backdrop-blur-md p-4 rounded-[22px] border-4 border-white/30 shadow-2xl">
-            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Jump into <span class="text-yellow-300 font-black">? BLOCKS</span> to test Bible memory & real-life applications!</p>
+            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Jump into <span class="text-yellow-300 font-black">? BLOCKS</span> to test real-life Bible applications!</p>
             <p>All 26 A-Z verses included. Complete English on top and complete Chinese on the bottom for every option.</p>
             <p class="text-[10px] font-black uppercase bg-blue-900/60 py-1.5 px-3 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
         </div>
@@ -186,21 +175,21 @@
 
     <!-- Quiz Overlay (Strictly screen-fitted without any scrolling) -->
     <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-3 bg-black/90 backdrop-blur-md">
-        <div class="w-full max-w-4xl h-[78vh] bg-gradient-to-b from-slate-900 to-blue-950 border-6 border-yellow-400 rounded-[26px] p-3 shadow-[0_25px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between">
+        <div class="w-full max-w-4xl h-[76vh] bg-gradient-to-b from-slate-900 to-blue-950 border-6 border-yellow-400 rounded-[26px] p-3 shadow-[0_25px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between">
             <div class="flex justify-between items-center mb-1 shrink-0">
                 <span id="quiz-mode-badge" class="bg-gradient-to-r from-yellow-400 to-amber-500 text-blue-950 text-[11px] px-3 py-0.5 rounded-full font-black uppercase tracking-widest shadow-md">Real-Life Application Challenge</span>
                 <span class="text-yellow-300/70 text-[10px] uppercase font-black tracking-widest flex items-center gap-1">✨ ? Block Challenge</span>
             </div>
             
-            <div class="bg-white/10 backdrop-blur-md border-2 border-yellow-400/30 rounded-xl px-3 py-1.5 mb-2 shrink-0 shadow-inner text-center">
+            <div class="bg-white/10 backdrop-blur-md border-2 border-yellow-400/30 rounded-xl px-3 py-1.5 mb-1.5 shrink-0 shadow-inner text-center">
                 <p id="quiz-prompt-en" class="text-sm md:text-base font-bold text-yellow-200 leading-snug mb-0.5"></p>
                 <p id="quiz-prompt-zh" class="text-sm md:text-lg font-black text-white leading-snug"></p>
             </div>
 
-            <div id="options-container" class="grid grid-cols-2 gap-2.5 flex-grow min-h-0"></div>
+            <div id="options-container" class="grid grid-cols-2 gap-2 flex-grow min-h-0"></div>
             
-            <div id="feedback-area" class="hidden p-2.5 rounded-xl border-4 shrink-0 text-center shadow-xl">
-                <p id="feedback-title" class="font-black uppercase text-lg mb-0.5"></p>
+            <div id="feedback-area" class="hidden p-2 rounded-xl border-4 shrink-0 text-center shadow-xl">
+                <p id="feedback-title" class="font-black uppercase text-base mb-0.5"></p>
                 <p id="feedback-detail" class="text-xs text-white/90 font-bold"></p>
             </div>
         </div>
@@ -424,9 +413,14 @@ function triggerQuiz(block) {
         btn.className = 'option-card';
         const isCorrect = (optData.ref === item.ref);
 
+        // Calculate dynamic font size based on text length to prevent any overflow
+        const totalLen = optData.en.length + optData.zh.length;
+        let fontSizeEn = totalLen > 140 ? 'clamp(11px, 1.35vw, 15px)' : totalLen > 90 ? 'clamp(13px, 1.6vw, 18px)' : 'clamp(15px, 1.9vw, 22px)';
+        let fontSizeZh = totalLen > 140 ? 'clamp(12px, 1.5vw, 16px)' : totalLen > 90 ? 'clamp(14px, 1.8vw, 20px)' : 'clamp(16px, 2.1vw, 24px)';
+
         btn.innerHTML = `
-            <span class="en-card-text">${optData.ref} — ${optData.en}</span>
-            <span class="zh-card-text">${optData.zh}</span>
+            <span class="en-card-text" style="font-size: ${fontSizeEn};">${optData.ref} — ${optData.en}</span>
+            <span class="zh-card-text" style="font-size: ${fontSizeZh};">${optData.zh}</span>
         `;
 
         btn.onclick = () => handleAnswer(isCorrect, item, container, feedback);
@@ -446,9 +440,9 @@ function handleAnswer(isCorrect, correctItem, container, feedback) {
         
         feedback.classList.remove('hidden');
         container.classList.add('hidden');
-        feedback.className = "p-2.5 rounded-xl border-4 border-green-500 bg-green-950/85 shrink-0 text-center shadow-xl";
+        feedback.className = "p-2 rounded-xl border-4 border-green-500 bg-green-950/85 shrink-0 text-center shadow-xl";
         document.getElementById('feedback-title').innerText = "🔥 MARVELOUS!";
-        document.getElementById('feedback-title').className = "font-black uppercase text-xl mb-0.5 text-green-400";
+        document.getElementById('feedback-title').className = "font-black uppercase text-base mb-0.5 text-green-400";
         document.getElementById('feedback-detail').innerText = `${correctItem.ref} matches this situation perfectly! Keep going!`;
         
         setTimeout(() => resume(), 1200);
@@ -458,9 +452,9 @@ function handleAnswer(isCorrect, correctItem, container, feedback) {
         
         feedback.classList.remove('hidden');
         container.classList.add('hidden');
-        feedback.className = "p-2.5 rounded-xl border-4 border-red-500 bg-red-950/85 shrink-0 text-center shadow-xl";
+        feedback.className = "p-2 rounded-xl border-4 border-red-500 bg-red-950/85 shrink-0 text-center shadow-xl";
         document.getElementById('feedback-title').innerText = "🕳️ PITFALL!";
-        document.getElementById('feedback-title').className = "font-black uppercase text-xl mb-0.5 text-red-400";
+        document.getElementById('feedback-title').className = "font-black uppercase text-base mb-0.5 text-red-400";
         document.getElementById('feedback-detail').innerText = `Correct Verse: ${correctItem.ref} — ${correctItem.en} (${correctItem.zh})`;
         
         pendingQueue.push({ item: correctItem, counter: 3 });
