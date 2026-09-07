@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bible Memorization: Super Jump Bros (iPad & Desktop Edition)</title>
+    <title>Sunday School Bible Memorization: iPad & Desktop Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;700;900&display=swap');
@@ -25,7 +25,7 @@
 
         body { 
             margin: 0; 
-            background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+            background: linear-gradient(to bottom, #1e3a8a, #0f172a);
             font-family: 'Fredoka', 'Inter', sans-serif; 
             overflow: hidden; 
             color: white; 
@@ -51,13 +51,13 @@
         .arcade-btn {
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             border: 4px solid #ffffff;
-            box-shadow: 0 8px 0 #b45309, 0 15px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 0 #b45309, 0 15px 20px rgba(0,0,0,0.4);
             transition: all 0.1s ease;
         }
 
         .arcade-btn:active {
             transform: translateY(4px);
-            box-shadow: 0 4px 0 #b45309, 0 8px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 0 #b45309, 0 8px 10px rgba(0,0,0,0.4);
         }
 
         .control-btn {
@@ -69,7 +69,7 @@
             align-items: center;
             justify-content: center;
             pointer-events: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             transition: transform 0.1s;
         }
 
@@ -78,6 +78,7 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
+        /* Option cards designed to fit strictly without scrolling */
         .option-card {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
@@ -85,42 +86,51 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 1rem 1.25rem;
+            padding: 0.75rem 1rem;
             width: 100%;
+            height: 100%;
             border-radius: 20px;
-            font-weight: 700;
             background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
             color: #1e3a8a;
-            box-shadow: 0 6px 0 #cbd5e1, 0 10px 15px rgba(0,0,0,0.08);
-            border: 4px solid #3b82f6;
+            box-shadow: 0 4px 0 #cbd5e1, 0 8px 12px rgba(0,0,0,0.1);
+            border: 3px solid #3b82f6;
             cursor: pointer;
+            overflow: hidden;
         }
 
         .option-card:hover {
             transform: translateY(-2px);
             border-color: #2563eb;
             background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
-            box-shadow: 0 8px 0 #94a3b8, 0 14px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 0 #94a3b8, 0 10px 15px rgba(0,0,0,0.15);
         }
 
         .option-card:active {
-            transform: translateY(3px);
+            transform: translateY(2px);
             box-shadow: 0 2px 0 #94a3b8;
         }
 
         .en-card-text {
-            font-size: clamp(14px, 1.6vw, 18px);
+            font-size: clamp(11px, 1.4vw, 15px);
             color: #1e40af;
             font-weight: 700;
-            line-height: 1.35;
+            line-height: 1.25;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .zh-card-text {
-            font-size: clamp(16px, 1.9vw, 21px);
+            font-size: clamp(13px, 1.6vw, 17px);
             color: #172554;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 900;
-            line-height: 1.4;
+            line-height: 1.25;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         #hud {
@@ -138,90 +148,90 @@
 
 <div id="game-container">
     <!-- Start Screen -->
-    <div id="start-screen" class="absolute inset-0 z-[110] flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800">
-        <div class="mb-6 bg-yellow-400 p-8 rounded-[40px] shadow-[0_15px_0_#ca8a04] rotate-[-2deg] border-8 border-white animate-pulse">
-            <h1 class="text-5xl md:text-7xl font-black text-blue-950 italic tracking-tight uppercase">Sunday School Jump Bros</h1>
+    <div id="start-screen" class="absolute inset-0 z-[110] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900">
+        <div class="mb-5 bg-yellow-400 p-6 rounded-[35px] shadow-[0_12px_0_#ca8a04] rotate-[-2deg] border-6 border-white animate-pulse">
+            <h1 class="text-4xl md:text-6xl font-black text-blue-950 italic tracking-tight uppercase">Sunday School Jump Bros</h1>
         </div>
-        <p class="text-yellow-300 font-black text-2xl tracking-widest mb-8 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
+        <p class="text-yellow-300 font-black text-xl tracking-widest mb-6 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
         
-        <div class="mb-10 text-white text-base space-y-3 max-w-xl bg-white/10 backdrop-blur-md p-6 rounded-[30px] border-4 border-white/30 shadow-2xl">
-            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> for real-life application challenges!</p>
-            <p>Memorize all 26 A-Z verses and apply them to life situations. Every option features English on top and complete Chinese on the bottom.</p>
-            <p class="text-xs font-black uppercase bg-blue-900/60 py-2.5 px-4 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
+        <div class="mb-8 text-white text-sm space-y-2 max-w-xl bg-white/10 backdrop-blur-md p-5 rounded-[25px] border-4 border-white/30 shadow-2xl">
+            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> for Bible memory & life application challenges!</p>
+            <p>Master all 26 A-Z verses. Every option features complete English on top and complete Chinese on the bottom.</p>
+            <p class="text-[11px] font-black uppercase bg-blue-900/60 py-2 px-3 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
         </div>
 
-        <button id="btn-start" class="arcade-btn px-16 py-6 text-blue-950 font-black rounded-full uppercase tracking-wider text-2xl transition-all border-4 border-white">
+        <button id="btn-start" class="arcade-btn px-14 py-5 text-blue-950 font-black rounded-full uppercase tracking-wider text-xl transition-all border-4 border-white">
             🚀 START MEMORY RUN
         </button>
     </div>
 
     <!-- HUD -->
     <div id="hud" class="absolute top-0 left-0 w-full flex justify-between items-start pointer-events-none z-20">
-        <div class="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/30 shadow-xl">
-            <p class="text-[10px] uppercase font-black text-white/70 tracking-wider">Lives</p>
-            <p id="stats-lives" class="text-2xl font-black text-red-500">❤️❤️❤️❤️❤️</p>
+        <div class="bg-black/50 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/30 shadow-xl">
+            <p class="text-[9px] uppercase font-black text-white/70 tracking-wider">Lives</p>
+            <p id="stats-lives" class="text-xl font-black text-red-500">❤️❤️❤️❤️❤️</p>
         </div>
-        <div class="bg-black/40 backdrop-blur-md px-8 py-3 rounded-2xl border-2 border-white/30 text-center shadow-xl">
-            <p class="text-[10px] uppercase font-black text-white/70 tracking-wider">Time Remaining</p>
-            <p id="stats-timer" class="text-2xl font-black text-yellow-300">180s</p>
+        <div class="bg-black/50 backdrop-blur-md px-6 py-2.5 rounded-2xl border-2 border-white/30 text-center shadow-xl">
+            <p class="text-[9px] uppercase font-black text-white/70 tracking-wider">Time Remaining</p>
+            <p id="stats-timer" class="text-xl font-black text-yellow-300">180s</p>
         </div>
-        <div class="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/30 text-right shadow-xl">
-            <p class="text-[10px] uppercase font-black text-white/70 tracking-wider">Score</p>
-            <p id="stats-score" class="text-2xl font-black text-green-400">0</p>
+        <div class="bg-black/50 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/30 text-right shadow-xl">
+            <p class="text-[9px] uppercase font-black text-white/70 tracking-wider">Score</p>
+            <p id="stats-score" class="text-xl font-black text-green-400">0</p>
         </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Quiz Overlay -->
-    <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md">
-        <div class="w-full max-w-5xl max-h-[92vh] bg-gradient-to-b from-slate-900 to-blue-950 border-8 border-yellow-400 rounded-[35px] p-6 md:p-8 shadow-[0_25px_50px_rgba(0,0,0,0.7)] flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <span id="quiz-mode-badge" class="bg-gradient-to-r from-yellow-400 to-amber-500 text-blue-950 text-xs md:text-sm px-4 py-1.5 rounded-full font-black uppercase tracking-widest shadow-md">Real-Life Application Challenge</span>
-                <span class="text-yellow-300/70 text-xs uppercase font-black tracking-widest flex items-center gap-1">✨ Hit ? Block Challenge</span>
+    <!-- Quiz Overlay (Strictly screen-fitted without scrolling) -->
+    <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="w-full max-w-4xl h-[88dvh] bg-gradient-to-b from-slate-900 to-blue-950 border-6 border-yellow-400 rounded-[30px] p-5 shadow-[0_25px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between">
+            <div class="flex justify-between items-center mb-2 shrink-0">
+                <span id="quiz-mode-badge" class="bg-gradient-to-r from-yellow-400 to-amber-500 text-blue-950 text-xs px-3 py-1 rounded-full font-black uppercase tracking-widest shadow-md">Memory & Life Challenge</span>
+                <span class="text-yellow-300/70 text-[10px] uppercase font-black tracking-widest flex items-center gap-1">✨ ? Block Challenge</span>
             </div>
             
-            <div class="bg-white/10 backdrop-blur-md border-2 border-yellow-400/30 rounded-2xl px-6 py-4 mb-4 shrink-0 shadow-inner text-center">
-                <p id="situation-en" class="text-lg md:text-2xl font-bold text-yellow-200 leading-snug mb-1"></p>
-                <p id="situation-zh" class="text-xl md:text-3xl font-black text-white leading-snug"></p>
+            <div class="bg-white/10 backdrop-blur-md border-2 border-yellow-400/30 rounded-2xl px-5 py-3 mb-3 shrink-0 shadow-inner text-center">
+                <p id="quiz-prompt-en" class="text-sm md:text-lg font-bold text-yellow-200 leading-snug mb-0.5"></p>
+                <p id="quiz-prompt-zh" class="text-base md:text-xl font-black text-white leading-snug"></p>
             </div>
 
-            <div id="options-container" class="grid grid-cols-2 gap-4 flex-grow min-h-0 overflow-y-auto"></div>
+            <div id="options-container" class="grid grid-cols-2 gap-3 flex-grow min-h-0"></div>
             
-            <div id="feedback-area" class="hidden p-4 rounded-2xl border-4 shrink-0 text-center shadow-xl">
-                <p id="feedback-title" class="font-black uppercase text-2xl mb-1"></p>
-                <p id="feedback-detail" class="text-sm md:text-base text-white/90 font-bold"></p>
+            <div id="feedback-area" class="hidden p-3 rounded-2xl border-4 shrink-0 text-center shadow-xl">
+                <p id="feedback-title" class="font-black uppercase text-xl mb-0.5"></p>
+                <p id="feedback-detail" class="text-xs md:text-sm text-white/90 font-bold"></p>
             </div>
         </div>
     </div>
 
     <!-- End Screen -->
-    <div id="end-screen" class="hidden absolute inset-0 z-[200] flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900">
-        <div class="mb-6 bg-white p-6 rounded-[35px] shadow-2xl border-8 border-yellow-400 animate-bounce">
-            <h2 id="end-status" class="text-5xl md:text-7xl font-black italic uppercase tracking-tighter text-blue-950"></h2>
+    <div id="end-screen" class="hidden absolute inset-0 z-[200] flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-950">
+        <div class="mb-5 bg-white p-5 rounded-[30px] shadow-2xl border-6 border-yellow-400 animate-bounce">
+            <h2 id="end-status" class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-blue-950"></h2>
         </div>
-        <div class="mb-8">
-            <p class="text-yellow-300 font-black uppercase tracking-widest mb-2 text-xl pixel-text">Final Memory Score</p>
-            <div class="text-8xl md:text-[10rem] leading-none font-black text-yellow-300 drop-shadow-[0_15px_0_rgba(0,0,0,0.5)]" id="final-score">0</div>
+        <div class="mb-6">
+            <p class="text-yellow-300 font-black uppercase tracking-widest mb-1 text-lg pixel-text">Final Memory Score</p>
+            <div class="text-7xl md:text-9xl leading-none font-black text-yellow-300 drop-shadow-[0_12px_0_rgba(0,0,0,0.5)]" id="final-score">0</div>
         </div>
-        <button id="btn-restart" class="arcade-btn px-16 py-6 text-blue-950 font-black rounded-full uppercase tracking-widest text-2xl transition-all border-4 border-white">
+        <button id="btn-restart" class="arcade-btn px-14 py-5 text-blue-950 font-black rounded-full uppercase tracking-widest text-xl transition-all border-4 border-white">
             🔄 PLAY AGAIN
         </button>
     </div>
 
-    <!-- Desktop & iPad On-Screen Controls -->
+    <!-- Touch Controls -->
     <div class="absolute inset-0 pointer-events-none z-30">
-        <div class="absolute bottom-8 left-8 flex gap-5 pointer-events-auto">
-            <div id="ctrl-left" class="control-btn w-24 h-24">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M15 19l-7-7 7-7"/></svg>
+        <div class="absolute bottom-6 left-6 flex gap-4 pointer-events-auto">
+            <div id="ctrl-left" class="control-btn w-20 h-20">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M15 19l-7-7 7-7"/></svg>
             </div>
-            <div id="ctrl-right" class="control-btn w-24 h-24">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M9 5l7 7-7 7"/></svg>
+            <div id="ctrl-right" class="control-btn w-20 h-20">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M9 5l7 7-7 7"/></svg>
             </div>
         </div>
-        <div class="absolute bottom-8 right-8 pointer-events-auto">
-            <div id="ctrl-jump" class="control-btn w-32 h-32 bg-yellow-400/40 border-yellow-400 shadow-2xl flex flex-col items-center justify-center">
-                <div class="text-white font-black text-3xl italic drop-shadow-md">JUMP</div>
+        <div class="absolute bottom-6 right-6 pointer-events-auto">
+            <div id="ctrl-jump" class="control-btn w-28 h-28 bg-yellow-400/40 border-yellow-400 shadow-2xl flex flex-col items-center justify-center">
+                <div class="text-white font-black text-2xl italic drop-shadow-md">JUMP</div>
             </div>
         </div>
     </div>
@@ -237,24 +247,24 @@ const BIBLE_DATA = [
     { key: 'F', ref: 'Isaiah 41:10', author: 'Isaiah', topic: 'FEAR NOT', en: 'Fear not, for I am with you; be not dismayed, for I am your God; I will strengthen you, I will help you.', zh: '你 不 要 害 怕 ， 因 为 我 与 你 同 在 ； 不 要 惊 惶 ， 因 为 我 是 你 的 神 。', situationEn: 'You feel anxious and worried about the future.', situationZh: '你对未来感到焦虑和担忧。' },
     { key: 'G', ref: '1 Thessalonians 5:18', author: 'Paul', topic: 'GIVE THANKS', en: 'Give thanks in all circumstances; for this is the will of God in Christ Jesus for you.', zh: '凡 事 谢 恩 ； 因 为 这 是 神 在 基 督 耶 稣 里 向 你 们 所 定 的 旨 意 。', situationEn: 'Things are difficult, but you want to remember to be grateful.', situationZh: '虽然处境艰难，但你想要提醒自己献上感恩。' },
     { key: 'H', ref: 'Romans 15:13', author: 'Paul', topic: 'HOPE', en: 'May the God of hope fill you with all joy and peace in believing, so that you may abound in hope.', zh: '但 愿 使 人 有 盼 望 的 神 ， 因 信 将 诸 般 的 喜 乐 充 满 你 们 的 心 。', situationEn: 'You feel discouraged and need God to fill your heart with hope.', situationZh: '你感到沮丧，需要神充满你心中的盼望。' },
-    { key: 'I', ref: 'Proverbs 10:9', author: 'Solomon', topic: 'INTEGRITY', en: 'Whoever walks in integrity walks securely, but he who makes his ways crooked will be found out.', zh: '行 正 直 路 的 ， 步 步 安 稳 ； 走 弯 曲 道 的 ， 必 致 败 露 。', situationEn: 'You are tempted to cheat or lie, but you want to do what is honest.', situationZh: '你面临欺骗或说谎的诱惑，但你想选择正直。' },
+    { key: 'I', ref: 'Proverbs 10:9', author: 'Solomon', topic: 'INTEGRITY', en: 'Whoever walks in integrity walks securely, but he who makes his ways crooked will be found out.', zh: '行 正 直 路 的 ， 步 步 安 稳 ； 走 弯 曲 道 的 ， 必 致 败 露 。', situationEn: 'Someone called you names or lied about you unfairly.', situationZh: '有人无端骂你或对你不诚实。' },
     { key: 'J', ref: 'Nehemiah 8:10', author: 'Nehemiah', topic: 'JOY', en: 'And do not be grieved, for the joy of the Lord is your strength.', zh: '你 们 不 要 忧 愁 ， 因 靠 耶 和 华 而 得 的 喜 乐 是 你 们 的 力 量 。', situationEn: 'You are feeling sad and need inner strength.', situationZh: '你感到悲伤难过，需要从神而来的力量。' },
     { key: 'K', ref: 'Matthew 6:33', author: 'Jesus', topic: 'KINGDOM', en: 'But seek first the kingdom of God and his righteousness, and all these things will be added to you.', zh: '你 们 要 先 求 他 的 国 和 他 的 义 ， 这 些 东 西 都 要 加 给 你 们 了 。', situationEn: 'You want to make serving God your top priority in life.', situationZh: '你想要把追求神的国和义放在生命的首位。' },
     { key: 'L', ref: 'John 3:16', author: 'John', topic: 'LOVE', en: 'For God so loved the world, that he gave his only Son, that whoever believes in him should have eternal life.', zh: '神 爱 世 人 ， 甚 至 将 他 的 独 生 子 赐 给 他 们 ， 叫 一 切 信 他 的 不 至 灭 亡 。', situationEn: 'You want to share how much God loves everyone in the world.', situationZh: '你想向别人分享神多么深爱世上的每一个人。' },
     { key: 'M', ref: 'Lamentations 3:22-23', author: 'Jeremiah', topic: 'MERCY', en: 'The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning.', zh: '我 们 不 致 消 灭 ， 是 出 於 耶 和 华 诸 般 的 慈 爱 ； 每 早 晨 ， 这 都 是 新 的 。', situationEn: 'You had a bad yesterday and need a fresh start today.', situationZh: '你昨天过得很糟，但今天渴望得到神崭新的怜悯。' },
-    { key: 'N', ref: 'Psalm 34:18', author: 'David', topic: 'NEAR TO GOD', en: 'The Lord is near to the brokenhearted and saves the crushed in spirit.', zh: '耶 和 华 靠 近 伤 心 的 人 ， 拯 救 灵 性 痛 悔 的 人 。', situationEn: 'You are crying because your heart is broken.', situationZh: '你因为心碎而痛哭，渴望感受到神的陪伴。' },
+    { key: 'N', ref: 'Psalm 34:18', author: 'David', topic: 'NEAR TO GOD', en: 'The Lord is near to the brokenhearted and saves the crushed in spirit.', zh: '耶 和 华 靠 近 伤 心 的 人 ， 拯 救 灵 性 痛 悔 的 人 。', situationEn: 'Your friend is crying because their heart is broken.', situationZh: '你的朋友因为心碎而痛哭难过。' },
     { key: 'O', ref: 'John 14:15', author: 'Jesus', topic: 'OBEY', en: 'If you love me, you will keep my commandments.', zh: '你 们 若 爱 我 ， 就 必 遵 守 我 的 命 令 。', situationEn: 'You want to show your love for Jesus through your actions.', situationZh: '你希望用实际行动来表达你对主耶稣的爱。' },
-    { key: 'P', ref: 'Psalm 100:4', author: 'David', topic: 'PRAISE', en: 'Enter his gates with thanksgiving, and his courts with praise! Give thanks to him; bless his name!', zh: '当 称 谢 进 入 他 的 门 ； 当 赞 美 进 入 他 的 院 。 当 感 谢 他 ， 称 颂 他 的 名 ！', situationEn: 'You enter church and want to worship and praise God.', situationZh: '你来到教会，心里充满对神的赞美和感谢。' },
+    { key: 'P', ref: 'Psalm 100:4', author: 'David', topic: 'PRAISE', en: 'Enter his gates with thanksgiving, and his courts with praise! Give thanks to him; bless his name!', zh: '当 称 谢 进 入 他 的 门 ； 当 赞 美 进 入 他 的 院 。 当 感 谢 他 ， 称 颂 他 的 名 ！', situationEn: 'You see a beautiful sunset and want to worship God.', situationZh: '你看到美丽的落日，心中充满对神的赞美。' },
     { key: 'Q', ref: 'Psalm 46:10', author: 'God', topic: 'QUIET', en: 'Be still, and know that I am God. I will be exalted among the nations, in the earth.', zh: '你 们 要 休 息 ， 要 知 道 我 是 神 ！ 我 必 在 外 邦 中 被 尊 崇 。', situationEn: 'Life is too noisy and busy, and you need to calm down before God.', situationZh: '生活太忙碌喧嚣，你需要在一个安静时刻默想神。' },
     { key: 'R', ref: 'Philippians 4:4', author: 'Paul', topic: 'REJOICE', en: 'Rejoice in the Lord always; again I will say, rejoice.', zh: '你 们 要 靠 主 常 常 喜 乐 。 我 再 说 ， 你 们 要 喜 乐 。', situationEn: 'You want to choose to be joyful in the Lord today.', situationZh: '你决定今天无论如何都要靠主常常喜乐。' },
     { key: 'S', ref: 'Philippians 4:13', author: 'Paul', topic: 'STRENGTH', en: 'I can do all things through him who strengthens me.', zh: '我 靠 着 那 加 给 我 力 量 的 ， 凡 事 都 能 做 。', situationEn: 'You are facing a tough task and feel like you cannot finish it.', situationZh: '你面对一项艰难的任务，觉得自己快撑不下去了。' },
     { key: 'T', ref: 'Proverbs 3:5-6', author: 'Solomon', topic: 'TRUST', en: 'Trust in the Lord with all your heart, and do not lean on your own understanding.', zh: '你 要 专 心 仰 赖 耶 和 华 ， 不 可 倚 靠 自 己 的 聪 明 。', situationEn: 'You have to make an important choice and do not know which way to go.', situationZh: '你必须做一个重要决定，不知道该走哪条路。' },
-    { key: 'U', ref: 'Proverbs 2:6', author: 'Solomon', topic: 'UNDERSTAND', en: 'For the Lord gives wisdom; from his mouth come knowledge and understanding.', zh: '因 为 耶 和 华 赐 人 智 慧 ； 知 识 和 聪 明 都 由 他 口 而 出 。', situationEn: 'You are studying hard and want God to give you wisdom.', situationZh: '你正在认真学习，渴望神赐给你智慧和聪明。' },
+    { key: 'U', ref: 'Proverbs 2:6', author: 'Solomon', topic: 'UNDERSTAND', en: 'For the Lord gives wisdom; from his mouth come knowledge and understanding.', zh: '因 为 耶 和 华 赐 人 智 慧 ； 知 识 和 聪 明 都 由 他 口 而 出 。', situationEn: 'You are studying hard and want God to give you wisdom for tests.', situationZh: '你正在认真学习，渴望神赐给你智慧和聪明。' },
     { key: 'V', ref: '1 Corinthians 15:57', author: 'Paul', topic: 'VICTORIOUS', en: 'Thanks be to God, who gives us the victory through our Lord Jesus Christ.', zh: '感 谢 神 ， 使 我 们 藉 着 我 们 的 主 耶 稣 基 督 得 胜 。', situationEn: 'You successfully overcame a hard temptation or obstacle.', situationZh: '你靠着主顺利胜过了一次困难的试探或阻碍。' },
-    { key: 'W', ref: 'Psalm 119:105', author: 'David', topic: 'WORD', en: 'Your word is a lamp to my feet and a light to my path.', zh: '你 的 话 是 我 脚 前 的 灯 ， 是 我 路 上 的 光 。', situationEn: 'You feel lost and need God’s word to guide your steps.', situationZh: '你感到迷茫，需要神的话语来指引前方的道路。' },
-    { key: 'X', ref: 'Psalm 34:3', author: 'David', topic: 'EXALT', en: 'Oh, magnify the Lord with me, and let us exalt his name together!', zh: '你 们 和 我 当 称 耶 和 华 为 大 ， 一 同 高 举 他 的 名 ！', situationEn: 'You want to invite your friends to praise God together with you.', situationZh: '你想要邀请身边的朋友一同来高举赞美神。' },
-    { key: 'Y', ref: 'Romans 12:1', author: 'Paul', topic: 'YIELD', en: 'Present your bodies as a living sacrifice, holy and acceptable to God.', zh: '将 身 体 献 上 ， 当 作 活 祭 ， 是 圣 洁 的 ， 是 神 所 喜 悦 的 。', situationEn: 'You want to surrender your whole life to serve God completely.', situationZh: '你愿意将自己全人献上，当作完全顺服神的活祭。' },
-    { key: 'Z', ref: 'Romans 12:11', author: 'Paul', topic: 'ZEAL', en: 'Do not be slothful in zeal, be fervent in spirit, serve the Lord.', zh: '殷 勤 不 可 懒 惰 。 要 心 里 火 热 ， 常 常 服 事 主 。', situationEn: 'You feel lazy and want God to give you spiritual fire to serve Him.', situationZh: '你感到有些懒散，求神点燃你心中火热的心志去事奉祂。' }
+    { key: 'W', ref: 'Psalm 119:105', author: 'David', topic: 'WORD', en: 'Your word is a lamp to my feet and a light to my path.', zh: '你 的 话 是 我 脚 前 的 灯 ， 是 我 路 上 的 光 。', situationEn: 'You lost the way and need God’s word to guide your steps.', situationZh: '你在迷茫中寻找方向，需要神的话语指引。' },
+    { key: 'X', ref: 'Psalm 34:3', author: 'David', topic: 'EXALT', en: 'Oh, magnify the Lord with me, and let us exalt his name together!', zh: '你 们 和 我 当 称 耶 和 华 为 大 ， 一 同 高 举 他 的 名 ！', situationEn: 'You want to invite your friends to praise God together with you.', situationZh: '你想邀请身边的朋友一同来高举赞美神。' },
+    { key: 'Y', ref: 'Romans 12:1', author: 'Paul', topic: 'YIELD', en: 'Present your bodies as a living sacrifice, holy and acceptable to God.', zh: '将 身 体 献 上 ， 当 作 活 祭 ， 是 圣 洁 的 ， 是 神 所 喜 悦 的 。', situationEn: 'You want to give your offering and dedicate your life to mission work.', situationZh: '你愿意奉献并全身心投入宣教事工。' },
+    { key: 'Z', ref: 'Romans 12:11', author: 'Paul', topic: 'ZEAL', en: 'Do not be slothful in zeal, be fervent in spirit, serve the Lord.', zh: '殷 勤 不 可 懒 惰 。 要 心 里 火 热 ， 常 常 服 事 主 。', situationEn: 'You feel lazy and want God to give you spiritual fire to participate in church.', situationZh: '你感到有些懒散，求神点燃你参与教会服事的热心。' }
 ];
 
 const canvas = document.getElementById('gameCanvas');
@@ -392,27 +402,25 @@ function triggerQuiz(block) {
     const modal = document.getElementById('quiz-overlay');
     const container = document.getElementById('options-container');
     const feedback = document.getElementById('feedback-area');
-    const sitEn = document.getElementById('situation-en');
-    const sitZh = document.getElementById('situation-zh');
+    const pEn = document.getElementById('quiz-prompt-en');
+    const pZh = document.getElementById('quiz-prompt-zh');
+    const badge = document.getElementById('quiz-mode-badge');
     
     feedback.classList.add('hidden');
     container.classList.remove('hidden');
     container.innerHTML = '';
 
-    sitEn.innerText = `Life Situation: "${item.situationEn}"`;
-    sitZh.innerText = `生活应用处境：${item.situationZh}`;
+    badge.innerText = "Real-Life Application & Memory Challenge";
+    pEn.innerText = `Life Situation: "${item.situationEn}"`;
+    pZh.innerText = `生活应用处境：${item.situationZh}`;
 
     const others = BIBLE_DATA.filter(x => x.ref !== item.ref);
-    const shuffledOthers = shuffle(others);
-    const wrongOptions = shuffledOthers.slice(0, 3);
+    const wrongOptions = shuffle(others).slice(0, 3);
+    const allOpts = shuffle([item, ...wrongOptions]);
 
-    const rawOptionsList = [item, ...wrongOptions];
-    const finalShuffledOptions = shuffle(rawOptionsList);
-
-    finalShuffledOptions.forEach(optData => {
+    allOpts.forEach(optData => {
         const btn = document.createElement('div');
         btn.className = 'option-card';
-        
         const isCorrect = (optData.ref === item.ref);
 
         btn.innerHTML = `
@@ -420,49 +428,51 @@ function triggerQuiz(block) {
             <span class="zh-card-text">${optData.zh}</span>
         `;
 
-        btn.onclick = () => {
-            Array.from(container.children).forEach(b => { b.style.pointerEvents = 'none'; });
-            
-            if (isCorrect) {
-                state.score += 1000;
-                document.getElementById('stats-score').innerText = state.score;
-                triggerFireworks();
-                
-                feedback.classList.remove('hidden');
-                container.classList.add('hidden');
-                feedback.className = "p-5 rounded-2xl border-4 border-green-500 bg-green-950/80 shrink-0 text-center shadow-xl";
-                document.getElementById('feedback-title').innerText = "🔥 MARVELOUS!";
-                document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-1 text-green-400";
-                document.getElementById('feedback-detail').innerText = `${item.ref} applies perfectly to this situation! Keep going!`;
-                
-                setTimeout(() => resume(), 1200);
-            } else {
-                state.lives--;
-                updateLivesHUD();
-                
-                feedback.classList.remove('hidden');
-                container.classList.add('hidden');
-                feedback.className = "p-5 rounded-2xl border-4 border-red-500 bg-red-950/80 shrink-0 text-center shadow-xl";
-                document.getElementById('feedback-title').innerText = "🕳️ PITFALL!";
-                document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-1 text-red-400";
-                document.getElementById('feedback-detail').innerText = `Correct Verse: ${item.ref} — ${item.en} (${item.zh})`;
-                
-                pendingQueue.push({ item: item, counter: 3 });
-
-                setTimeout(() => {
-                    if (state.lives <= 0) endGame("GAME OVER", "The memory timeline collapsed.");
-                    else {
-                        player.y = state.groundY - player.h - 150;
-                        player.x -= 120;
-                        resume();
-                    }
-                }, 2500);
-            }
-        };
+        btn.onclick = () => handleAnswer(isCorrect, item, container, feedback);
         container.appendChild(btn);
     });
 
     modal.classList.remove('hidden');
+}
+
+function handleAnswer(isCorrect, correctItem, container, feedback) {
+    Array.from(container.children).forEach(b => { b.style.pointerEvents = 'none'; });
+    
+    if (isCorrect) {
+        state.score += 1000;
+        document.getElementById('stats-score').innerText = state.score;
+        triggerFireworks();
+        
+        feedback.classList.remove('hidden');
+        container.classList.add('hidden');
+        feedback.className = "p-3 rounded-2xl border-4 border-green-500 bg-green-950/85 shrink-0 text-center shadow-xl";
+        document.getElementById('feedback-title').innerText = "🔥 MARVELOUS!";
+        document.getElementById('feedback-title').className = "font-black uppercase text-2xl mb-0.5 text-green-400";
+        document.getElementById('feedback-detail').innerText = `${correctItem.ref} matches this situation perfectly! Keep going!`;
+        
+        setTimeout(() => resume(), 1200);
+    } else {
+        state.lives--;
+        updateLivesHUD();
+        
+        feedback.classList.remove('hidden');
+        container.classList.add('hidden');
+        feedback.className = "p-3 rounded-2xl border-4 border-red-500 bg-red-950/85 shrink-0 text-center shadow-xl";
+        document.getElementById('feedback-title').innerText = "🕳️ PITFALL!";
+        document.getElementById('feedback-title').className = "font-black uppercase text-2xl mb-0.5 text-red-400";
+        document.getElementById('feedback-detail').innerText = `Correct Verse: ${correctItem.ref} — ${correctItem.en} (${correctItem.zh})`;
+        
+        pendingQueue.push({ item: correctItem, counter: 3 });
+
+        setTimeout(() => {
+            if (state.lives <= 0) endGame("GAME OVER", "The memory timeline collapsed.");
+            else {
+                player.y = state.groundY - player.h - 150;
+                player.x -= 120;
+                resume();
+            }
+        }, 2500);
+    }
 }
 
 function updateLivesHUD() {
@@ -543,8 +553,8 @@ function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    grad.addColorStop(0, '#3b82f6');
-    grad.addColorStop(1, '#93c5fd');
+    grad.addColorStop(0, '#1e3a8a');
+    grad.addColorStop(1, '#3b82f6');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
