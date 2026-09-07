@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bible Memorization: Super Jump</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+            --sar: env(safe-area-inset-right);
+        }
+
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body { 
+            margin: 0; 
+            background: #5c94fc;
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            color: white; 
+            touch-action: none; 
+            height: 100dvh;
+            width: 100vw;
+            position: fixed;
+        }
+        
+        #game-container { 
+            position: relative; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden;
+        }
+
+        canvas { 
+            display: block; 
+            width: 100%;
+            height: 100%;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            transition: transform 0.1s;
+        }
+
+        .control-btn:active {
+            transform: scale(0.85);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Modified for single-screen fit */
+        .option-btn {
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            height: auto;
+            min-height: 100%; 
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: clamp(0.85rem, 1.8vh, 1.1rem);
+            line-height: 1.3;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            border: 3px solid #3b82f6;
+        }
+
+        @media (min-width: 768px) {
+            .option-btn { 
+                padding: 1rem 1.5rem; 
+                border-radius: 20px; 
+                border-width: 4px; 
+                font-size: clamp(1rem, 2vh, 1.2rem);
+                box-shadow: 0 6px 0 rgba(0,0,0,0.2); 
+            }
+        }
+
+        .zh-text-dark {
+            font-size: clamp(1rem, 2.2vh, 1.4rem);
+            color: #1e3a8a; /* blue-900 */
+            margin-top: 6px;
+            font-weight: 900;
+            line-height: 1.3;
+        }
+
+        #options-container {
+            scrollbar-width: thin;
+            scrollbar-color: #93c5fd transparent;
+        }
+        
+        #options-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #options-container::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        #options-container::-webkit-scrollbar-thumb {
+            background: #93c5fd; 
+            border-radius: 10px;
+        }
+
+        #hud {
+            padding-top: calc(0.5rem + var(--sat));
+            padding-left: calc(1rem + var(--sal));
+            padding-right: calc(1rem + var(--sar));
+        }
+
+        .pixel-text {
+            text-shadow: 2px 2px 0px #000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen" class="absolute inset-0 z-[110] flex flex-col items-center justify-center p-6 text-center bg-[#5c94fc]">
+        <div class="mb-6 bg-white p-6 rounded-[40px] shadow-2xl rotate-[-2deg] border-8 border-yellow-400">
+            <h1 class="text-4xl md:text-6xl font-black text-blue-900 italic tracking-tighter uppercase">Bible Master Jump</h1>
+        </div>
+        <p class="text-white font-black text-xl tracking-widest mb-8 md:mb-10 uppercase pixel-text">A-Z MEMORIZATION</p>
+        
+        <div class="mb-8 md:mb-10 text-white text-sm space-y-3 md:space-y-4 max-w-md bg-white/20 p-6 md:p-8 rounded-[40px] border-4 border-white/40">
+            <p class="font-bold">Jump into <span class="text-yellow-300 font-black">? BLOCKS</span> from below to reveal verses!</p>
+            <p>Right answers shoot <span class="text-green-300 font-black">Fireworks</span> 🎆</p>
+            <p>Wrong answers open a <span class="text-red-400 font-black">Pit</span> below you 🕳️</p>
+            <p class="text-[10px] md:text-xs font-black uppercase bg-blue-800/50 py-3 rounded-2xl mt-4">Computer: Arrows & Space | Mobile: Screen Buttons</p>
+        </div>
+
+        <button id="btn-start" class="px-12 md:px-20 py-6 md:py-8 bg-yellow-400 text-blue-900 font-black rounded-full shadow-[0_12px_0_#ca8a04] hover:shadow-[0_6px_0_#ca8a04] hover:translate-y-1 uppercase tracking-widest text-xl md:text-2xl transition-all border-4 border-white">
+            START MEMORIZING
+        </button>
+    </div>
+
+    <div id="hud" class="absolute top-0 left-0 w-full flex justify-between items-start pointer-events-none z-20">
+        <div class="bg-black/30 backdrop-blur-md px-3 md:px-5 py-2 md:py-3 rounded-3xl border-2 border-white/20">
+            <p class="text-[9px] md:text-[10px] uppercase font-black text-white/70">Lives</p>
+            <p id="stats-lives" class="text-lg md:text-2xl font-black text-red-500">❤️❤️❤️❤️❤️</p>
+        </div>
+        <div class="bg-black/30 backdrop-blur-md px-4 md:px-8 py-2 md:py-3 rounded-3xl border-2 border-white/20 text-center">
+            <p class="text-[9px] md:text-[10px] uppercase font-black text-white/70">Time Remaining</p>
+            <p id="stats-timer" class="text-lg md:text-2xl font-black text-yellow-300">180s</p>
+        </div>
+        <div class="bg-black/30 backdrop-blur-md px-3 md:px-5 py-2 md:py-3 rounded-3xl border-2 border-white/20 text-right">
+            <p class="text-[9px] md:text-[10px] uppercase font-black text-white/70">Score</p>
+            <p id="stats-score" class="text-lg md:text-2xl font-black text-green-400">0</p>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-3 md:p-6 bg-black/85 backdrop-blur-sm">
+        <!-- Key Flex Layout for single screen fit -->
+        <div class="w-full max-w-4xl bg-white border-[6px] md:border-8 border-yellow-400 rounded-[24px] md:rounded-[40px] p-4 md:p-8 shadow-2xl flex flex-col max-h-[96dvh]">
+            
+            <div class="flex justify-between items-center mb-2 md:mb-4 shrink-0">
+                <span class="bg-blue-600 text-white text-[10px] md:text-[12px] px-3 md:px-4 py-1 md:py-2 rounded-full font-black uppercase tracking-widest">Verse Challenge</span>
+            </div>
+            
+            <!-- Question text shrinks if needed -->
+            <h3 id="question-text" class="text-sm md:text-2xl font-black mb-2 md:mb-4 text-blue-900 leading-tight shrink-0"></h3>
+            
+            <!-- Options grid flex-grows to take available space, min-h-0 allows it to compress -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 flex-grow min-h-0 overflow-y-auto pr-1 pb-1"></div>
+            
+            <!-- Feedback area replaces options -->
+            <div id="feedback-area" class="hidden mt-3 md:mt-6 p-4 md:p-6 rounded-[20px] md:rounded-[30px] border-4 text-center shrink-0">
+                <p id="feedback-title" class="font-black uppercase text-xl md:text-2xl mb-1 md:mb-2"></p>
+                <p id="feedback-detail" class="text-sm md:text-xl text-blue-900 font-bold"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="hidden absolute inset-0 z-[200] flex flex-col items-center justify-center p-6 text-center bg-blue-600">
+        <div class="mb-6 md:mb-8 bg-white p-4 md:p-6 rounded-[30px] md:rounded-[40px] shadow-2xl border-8 border-yellow-400">
+            <h2 id="end-status" class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-blue-900"></h2>
+        </div>
+        <div class="mb-10 md:mb-12">
+            <p class="text-white font-black uppercase tracking-widest mb-4 pixel-text">Final Score</p>
+            <div class="text-[6rem] md:text-[10rem] leading-none font-black text-yellow-300 drop-shadow-[0_15px_0_rgba(0,0,0,0.3)]" id="final-score">0</div>
+        </div>
+        <button id="btn-restart" class="px-12 md:px-20 py-6 md:py-8 bg-yellow-400 text-blue-900 font-black rounded-full shadow-[0_12px_0_#ca8a04] uppercase tracking-widest text-xl md:text-2xl transition-all active:translate-y-1 active:shadow-none border-4 border-white">
+            PLAY AGAIN
+        </button>
+    </div>
+
+    <div class="absolute inset-0 pointer-events-none z-30">
+        <div class="absolute bottom-6 md:bottom-10 left-6 md:left-10 flex gap-4 md:gap-6 pointer-events-auto">
+            <div id="ctrl-left" class="control-btn w-20 h-20 md:w-24 md:h-24">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M15 19l-7-7 7-7"/></svg>
+            </div>
+            <div id="ctrl-right" class="control-btn w-20 h-20 md:w-24 md:h-24">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M9 5l7 7-7 7"/></svg>
+            </div>
+        </div>
+        <div class="absolute bottom-6 md:bottom-10 right-6 md:right-10 pointer-events-auto">
+            <div id="ctrl-jump" class="control-btn w-24 h-24 md:w-32 md:h-32 bg-yellow-400/30 border-yellow-400 shadow-xl">
+                <div class="text-white font-black text-xl md:text-4xl italic">JUMP</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const BIBLE_DATA = [
+    { ref: "Matthew 7:7", refZh: "马太福音 7:7", text: "Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you.", textZh: "你们祈求，就给你们；寻找，就寻见；叩门，就给你们开门。", h1: "Ask, and it will be given to you; seek, and you will find;", h1Zh: "你们祈求，就给你们；寻找，就寻见；", h2: "knock, and it will be opened to you.", h2Zh: "叩门，就给你们开门。", author: "Jesus", authorZh: "耶稣" },
+    { ref: "Acts 16:31", refZh: "使徒行传 16:31", text: "Believe in the Lord Jesus, and you will be saved, you and your household.", textZh: "当信主耶稣，你和你一家都必得救。", h1: "Believe in the Lord Jesus,", h1Zh: "当信主耶稣，", h2: "and you will be saved, you and your household.", h2Zh: "你和你一家都必得救。", author: "Paul & Silas", authorZh: "保罗和西拉" },
+    { ref: "1 John 1:9", refZh: "约翰一书 1:9", text: "If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all unrighteousness.", textZh: "我们若认自己的罪，神是信实的，是公义的，必要赦免我们的罪，洗净我们一切的不义。", h1: "If we confess our sins, he is faithful and just to forgive us our sins", h1Zh: "我们若认自己的罪，神是信实的，是公义的，必要赦免我们的罪，", h2: "and to cleanse us from all unrighteousness.", h2Zh: "洗净我们一切的不义。", author: "Apostle John", authorZh: "使徒约翰" },
+    { ref: "Psalm 37:4", refZh: "诗篇 37:4", text: "Delight yourself in the Lord, and he will give you the desires of your heart.", textZh: "又要以耶和华为乐，他就将你心里所求的赐给你。", h1: "Delight yourself in the Lord,", h1Zh: "又要以耶和华为乐，", h2: "and he will give you the desires of your heart.", h2Zh: "他就将你心里所求的赐给你。", author: "David", authorZh: "大卫" },
+    { ref: "Joshua 1:9", refZh: "约书亚记 1:9", text: "Have I not commanded you? Be strong and courageous. Do not be frightened, and do not be dismayed, for the Lord your God is with you wherever you go.", textZh: "我岂没有吩咐你吗？你当刚强壮胆！不要惧怕，也不要惊惶；因为你无论往哪里去，耶和华你的神必与你同在。", h1: "Have I not commanded you? Be strong and courageous.", h1Zh: "我岂没有吩咐你吗？你当刚强壮胆！", h2: "Do not be frightened, and do not be dismayed, for the Lord your God is with you wherever you go.", h2Zh: "不要惧怕，也不要惊惶；因为你无论往哪里去，耶和华你的神必与你同在。", author: "God", authorZh: "神" },
+    { ref: "Isaiah 41:10", refZh: "以赛亚书 41:10", text: "Fear not, for I am with you; be not dismayed, for I am your God; I will strengthen you, I will help you, I will uphold you with my righteous right hand.", textZh: "你不要害怕，因为我与你同在；不要惊惶，因为我是你的神。我必坚固你，我必帮助你；我必用我公义的右手扶持你。", h1: "Fear not, for I am with you; be not dismayed, for I am your God;", h1Zh: "你不要害怕，因为我与你同在；不要惊惶，因为我是你的神。", h2: "I will strengthen you, I will help you, I will uphold you with my righteous right hand.", h2Zh: "我必坚固你，我必帮助你；我必用我公义的右手扶持你。", author: "God", authorZh: "神" },
+    { ref: "1 Thessalonians 5:18", refZh: "帖撒罗尼迦前书 5:18", text: "Give thanks in all circumstances; for this is the will of God in Christ Jesus for you.", textZh: "凡事谢恩；因为这是神在基督耶稣里向你们所定的旨意。", h1: "Give thanks in all circumstances;", h1Zh: "凡事谢恩；", h2: "for this is the will of God in Christ Jesus for you.", h2Zh: "因为这是神在基督耶稣里向你们所定的旨意。", author: "Paul", authorZh: "保罗" },
+    { ref: "Romans 15:13", refZh: "罗马书 15:13", text: "May the God of hope fill you with all joy and peace in believing, so that by the power of the Holy Spirit you may abound in hope.", textZh: "但愿使人有盼望的神，因信将诸般的喜乐、平安充满你们的心，使你们藉着圣灵的能力大有盼望。", h1: "May the God of hope fill you with all joy and peace in believing,", h1Zh: "但愿使人有盼望的神，因信将诸般的喜乐、平安充满你们的心，", h2: "so that by the power of the Holy Spirit you may abound in hope.", h2Zh: "使你们藉着圣灵的能力大有盼望。", author: "Paul", authorZh: "保罗" },
+    { ref: "Proverbs 10:9", refZh: "箴言 10:9", text: "Whoever walks in integrity walks securely, but he who makes his ways crooked will be found out.", textZh: "行正直路的，步步安稳；走弯曲道的，必致败露。", h1: "Whoever walks in integrity walks securely,", h1Zh: "行正直路的，步步安稳；", h2: "but he who makes his ways crooked will be found out.", h2Zh: "走弯曲道的，必致败露。", author: "Solomon", authorZh: "所罗门" },
+    { ref: "Nehemiah 8:10", refZh: "尼希米记 8:10", text: "And do not be grieved, for the joy of the Lord is your strength.", textZh: "你们不要忧愁，因靠耶和华而得的喜乐是你们的力量。", h1: "And do not be grieved,", h1Zh: "你们不要忧愁，", h2: "for the joy of the Lord is your strength.", h2Zh: "因靠耶和华而得的喜乐是你们的力量。", author: "Nehemiah", authorZh: "尼希米" },
+    { ref: "Matthew 6:33", refZh: "马太福音 6:33", text: "But seek first the kingdom of God and his righteousness, and all these things will be added to you.", textZh: "你们要先求他的国和他的义，这些东西都要加给你们了。", h1: "But seek first the kingdom of God and his righteousness,", h1Zh: "你们要先求他的国和他的义，", h2: "and all these things will be added to you.", h2Zh: "这些东西都要加给你们了。", author: "Jesus", authorZh: "耶稣" },
+    { ref: "John 3:16", refZh: "约翰福音 3:16", text: "For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.", textZh: "神爱世人，甚至将他的独生子赐给他们，叫一切信他的，不至灭亡，反得永生。", h1: "For God so loved the world, that he gave his only Son,", h1Zh: "神爱世人，甚至将他的独生子赐给他们，", h2: "that whoever believes in him should not perish but have eternal life.", h2Zh: "叫一切信他的，不至灭亡，反得永生。", author: "Jesus", authorZh: "耶稣" },
+    { ref: "Lamentations 3:22-23", refZh: "耶利米哀歌 3:22-23", text: "The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.", textZh: "我们不致消灭，是出於耶和华诸般的慈爱；是因他的怜悯不致断绝。每早晨，这都是新的；你的诚实极其广大！", h1: "The steadfast love of the Lord never ceases; his mercies never come to an end;", h1Zh: "我们不致消灭，是出於耶和华诸般的慈爱；是因他的怜悯不致断绝。", h2: "they are new every morning; great is your faithfulness.", h2Zh: "每早晨，这都是新的；你的诚实极其广大！", author: "Jeremiah", authorZh: "耶利米" },
+    { ref: "Psalm 34:18", refZh: "诗篇 34:18", text: "The Lord is near to the brokenhearted and saves the crushed in spirit.", textZh: "耶和华靠近伤心的人，拯救灵性痛悔的人。", h1: "The Lord is near to the brokenhearted", h1Zh: "耶和华靠近伤心的人，", h2: "and saves the crushed in spirit.", h2Zh: "拯救灵性痛悔的人。", author: "David", authorZh: "大卫" },
+    { ref: "John 14:15", refZh: "约翰福音 14:15", text: "If you love me, you will keep my commandments.", textZh: "你们若爱我，就必遵守我的命令。", h1: "If you love me,", h1Zh: "你们若爱我，", h2: "you will keep my commandments.", h2Zh: "就必遵守我的命令。", author: "Jesus", authorZh: "耶稣" },
+    { ref: "Psalm 100:4", refZh: "诗篇 100:4", text: "Enter his gates with thanksgiving, and his courts with praise! Give thanks to him; bless his name!", textZh: "当称谢进入他的门；当赞美进入他的院。当感谢他，称颂他的名！", h1: "Enter his gates with thanksgiving, and his courts with praise!", h1Zh: "当称谢进入他的门；当赞美进入他的院。", h2: "Give thanks to him; bless his name!", h2Zh: "当感谢他，称颂他的名！", author: "The Psalmist", authorZh: "诗篇作者" },
+    { ref: "Psalm 46:10", refZh: "诗篇 46:10", text: "Be still, and know that I am God. I will be exalted among the nations, I will be exalted in the earth!", textZh: "你们要休息，要知道我是神！我必在外邦中被尊崇，在遍地上也被尊崇。", h1: "Be still, and know that I am God.", h1Zh: "你们要休息，要知道我是神！", h2: "I will be exalted among the nations, I will be exalted in the earth!", h2Zh: "我必在外邦中被尊崇，在遍地上也被尊崇。", author: "God", authorZh: "神" },
+    { ref: "Philippians 4:4", refZh: "腓立比书 4:4", text: "Rejoice in the Lord always; again I will say, rejoice.", textZh: "你们要靠主常常喜乐。我再说，你们要喜乐。", h1: "Rejoice in the Lord always;", h1Zh: "你们要靠主常常喜乐。", h2: "again I will say, rejoice.", h2Zh: "我再说，你们要喜乐。", author: "Paul", authorZh: "保罗" },
+    { ref: "Philippians 4:13", refZh: "腓立比书 4:13", text: "I can do all things through him who strengthens me.", textZh: "我靠着那加给我力量的，凡事都能做。", h1: "I can do all things", h1Zh: "凡事都能做。", h2: "through him who strengthens me.", h2Zh: "我靠着那加给我力量的，", author: "Paul", authorZh: "保罗" },
+    { ref: "Proverbs 3:5-6", refZh: "箴言 3:5-6", text: "Trust in the Lord with all your heart, and do not lean on your own understanding. In all your ways acknowledge him, and he will make straight your paths.", textZh: "你要专心仰赖耶和华，不可倚靠自己的聪明，在你一切所行的事上都要认定他，他必指引你的路。", h1: "Trust in the Lord with all your heart, and do not lean on your own understanding.", h1Zh: "你要专心仰赖耶和华，不可倚靠自己的聪明，", h2: "In all your ways acknowledge him, and he will make straight your paths.", h2Zh: "在你一切所行的事上都要认定他，他必指引你的路。", author: "Solomon", authorZh: "所罗门" },
+    { ref: "Proverbs 2:6", refZh: "箴言 2:6", text: "For the Lord gives wisdom; from his mouth come knowledge and understanding;", textZh: "因为耶和华赐人智慧；知识和聪明都由他口而出。", h1: "For the Lord gives wisdom;", h1Zh: "因为耶和华赐人智慧；", h2: "from his mouth come knowledge and understanding;", h2Zh: "知识和聪明都由他口而出。", author: "Solomon", authorZh: "所罗门" },
+    { ref: "1 Corinthians 15:57", refZh: "哥林多前书 15:57", text: "But thanks be to God, who gives us the victory through our Lord Jesus Christ.", textZh: "感谢神，使我们藉着我们的主耶稣基督得胜。", h1: "But thanks be to God,", h1Zh: "感谢神，", h2: "who gives us the victory through our Lord Jesus Christ.", h2Zh: "使我们藉着我们的主耶稣基督得胜。", author: "Paul", authorZh: "保罗" },
+    { ref: "Psalm 119:105", refZh: "诗篇 119:105", text: "Your word is a lamp to my feet and a light to my path.", textZh: "你的话是我脚前的灯，是我路上的光。", h1: "Your word is a lamp to my feet", h1Zh: "你的话是我脚前的灯，", h2: "and a light to my path.", h2Zh: "是我路上的光。", author: "The Psalmist", authorZh: "诗篇作者" },
+    { ref: "Psalm 34:3", refZh: "诗篇 34:3", text: "Oh, magnify the Lord with me, and let us exalt his name together!", textZh: "你们和我当称耶和华为大，一同高举他的名。", h1: "Oh, magnify the Lord with me,", h1Zh: "你们和我当称耶和华为大，", h2: "and let us exalt his name together!", h2Zh: "一同高举他的名。", author: "David", authorZh: "大卫" },
+    { ref: "Romans 12:1", refZh: "罗马书 12:1", text: "I appeal to you therefore, brothers, by the mercies of God, to present your bodies as a living sacrifice, holy and acceptable to God, which is your spiritual worship.", textZh: "所以弟兄们，我以神的慈悲劝你们，将身体献上，当作活祭，是圣洁的，是神所喜悦的；你们如此事奉乃是理所当然的。", h1: "to present your bodies as a living sacrifice, holy and acceptable to God,", h1Zh: "将身体献上，当作活祭，是圣洁的，是神所喜悦的；", h2: "which is your spiritual worship.", h2Zh: "你们如此事奉乃是理所当然的。", author: "Paul", authorZh: "保罗" },
+    { ref: "Romans 12:11", refZh: "罗马书 12:11", text: "Do not be slothful in zeal, be fervent in spirit, serve the Lord.", textZh: "殷勤不可懒惰。要心里火热，常常服事主。", h1: "Do not be slothful in zeal, be fervent in spirit,", h1Zh: "殷勤不可懒惰。要心里火热，", h2: "serve the Lord.", h2Zh: "常常服事主。", author: "Paul", authorZh: "保罗" }
+];
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let upcomingQuestions = [];
+let currentQ = null;
+
+let state = {
+    gameStarted: false,
+    gameActive: false,
+    paused: false,
+    timer: 180,
+    lives: 5,
+    score: 0,
+    viewportW: window.innerWidth,
+    viewportH: window.innerHeight,
+    groundY: 0,
+    cameraX: 0,
+    pit: { active: false, x: 0, w: 280 }
+};
+
+const player = { 
+    x: 200, y: 0, w: 50, h: 75,
+    vx: 0, vy: 0, 
+    speed: 8, jumpPower: -18, 
+    grounded: false, facingRight: true,
+    jumpsAvailable: 2,
+    frame: 0
+};
+
+let blocks = [];
+let particles = [];
+const inputs = { left: false, right: false };
+
+function shuffle(a) {
+    let array = [...a];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function generateQuestion() {
+    let target = BIBLE_DATA[Math.floor(Math.random() * BIBLE_DATA.length)];
+    let distractors = [];
+    
+    while (distractors.length < 3) {
+        let d = BIBLE_DATA[Math.floor(Math.random() * BIBLE_DATA.length)];
+        if (d.ref !== target.ref && !distractors.find(x => x.ref === d.ref)) {
+            distractors.push(d);
+        }
+    }
+    
+    // 6 Different Play Modes!
+    let mode = Math.floor(Math.random() * 6);
+    let qText = "";
+    let options = [];
+    let correctStr = "";
+
+    if (mode === 0) {
+        qText = `Find the verse for:<br><span class="text-blue-600">${target.ref}</span><br><div class="zh-text-dark">${target.refZh}</div>`;
+        correctStr = `${target.text}<div class="zh-text-dark">${target.textZh}</div>`;
+        options.push(correctStr);
+        distractors.forEach(d => options.push(`${d.text}<div class="zh-text-dark">${d.textZh}</div>`));
+    } 
+    else if (mode === 1) {
+        qText = `Which verse is this?<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 leading-snug">${target.text}</div><div class="zh-text-dark">${target.textZh}</div>`;
+        correctStr = `${target.ref}<div class="zh-text-dark">${target.refZh}</div>`;
+        options.push(correctStr);
+        distractors.forEach(d => options.push(`${d.ref}<div class="zh-text-dark">${d.refZh}</div>`));
+    } 
+    else if (mode === 2) {
+        qText = `Complete the verse:<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 text-gray-700 leading-snug">${target.h1} <strong>_____</strong></div><div class="zh-text-dark">${target.h1Zh} <strong>_____</strong></div>`;
+        correctStr = `${target.h2}<div class="zh-text-dark">${target.h2Zh}</div>`;
+        options.push(correctStr);
+        distractors.forEach(d => options.push(`${d.h2}<div class="zh-text-dark">${d.h2Zh}</div>`));
+    }
+    else if (mode === 3) {
+        qText = `Fill in the beginning:<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 text-gray-700 leading-snug"><strong>_____</strong> ${target.h2}</div><div class="zh-text-dark"><strong>_____</strong> ${target.h2Zh}</div>`;
+        correctStr = `${target.h1}<div class="zh-text-dark">${target.h1Zh}</div>`;
+        options.push(correctStr);
+        distractors.forEach(d => options.push(`${d.h1}<div class="zh-text-dark">${d.h1Zh}</div>`));
+    }
+    else if (mode === 4) {
+        let isTrue = Math.random() > 0.5;
+        let displayVerse = isTrue ? target : distractors[0];
+        qText = `True or False?<br><span class="text-blue-600">${target.ref}</span> <span class="text-xl md:text-2xl font-black text-gray-700">(${target.refZh})</span><br>matches this text:<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 leading-snug">${displayVerse.text}</div><div class="zh-text-dark">${displayVerse.textZh}</div>`;
+        
+        correctStr = isTrue ? `True<div class="zh-text-dark">正确</div>` : `False<div class="zh-text-dark">错误</div>`;
+        let wrongStr = isTrue ? `False<div class="zh-text-dark">错误</div>` : `True<div class="zh-text-dark">正确</div>`;
+        options = [correctStr, wrongStr]; 
+    }
+    else if (mode === 5) {
+        qText = `Who is the speaker or primary author of this verse?<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 leading-snug">${target.text}</div><div class="zh-text-dark">${target.textZh}</div>`;
+        correctStr = `${target.author}<div class="zh-text-dark">${target.authorZh}</div>`;
+        
+        let authorDistractors = [];
+        let allAuthors = [...new Set(BIBLE_DATA.map(d => JSON.stringify({e: d.author, z: d.authorZh})))].map(s => JSON.parse(s));
+        let possibleDistractors = allAuthors.filter(a => a.e !== target.author);
+        possibleDistractors = shuffle(possibleDistractors);
+        
+        for(let i = 0; i < Math.min(3, possibleDistractors.length); i++) {
+            authorDistractors.push(`${possibleDistractors[i].e}<div class="zh-text-dark">${possibleDistractors[i].z}</div>`);
+        }
+        options = [correctStr, ...authorDistractors];
+    }
+
+    return { q: qText, a: correctStr, o: shuffle(options) };
+}
+
+function initBlocks() {
+    blocks = [];
+    for (let i = 0; i < 50; i++) {
+        blocks.push({
+            x: 600 + (i * 600),
+            y: state.groundY - 240 - (Math.random() * 80),
+            w: 80, h: 80,
+            active: true,
+            type: 'quiz'
+        });
+        
+        if (Math.random() > 0.5) {
+            blocks.push({
+                x: 800 + (i * 600),
+                y: state.groundY - 140,
+                w: 80, h: 80,
+                active: true,
+                type: 'brick'
+            });
+        }
+    }
+}
+
+function resize() {
+    state.viewportW = window.innerWidth;
+    state.viewportH = window.innerHeight;
+    canvas.width = state.viewportW;
+    canvas.height = state.viewportH;
+    state.groundY = state.viewportH - 120;
+    
+    if (!state.gameStarted) {
+        player.y = state.groundY - player.h;
+        initBlocks();
+    }
+}
+
+function handleJump() {
+    if (!state.gameActive || state.paused) return;
+    if (player.jumpsAvailable > 0) {
+        player.vy = player.jumpPower;
+        player.jumpsAvailable--;
+        player.grounded = false;
+    }
+}
+
+function init() {
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+    resize();
+
+    const handleKey = (e, isDown) => {
+        if (!state.gameActive || state.paused) return;
+        const key = e.key.toLowerCase();
+        if (key === 'arrowleft' || key === 'a') inputs.left = isDown;
+        if (key === 'arrowright' || key === 'd') inputs.right = isDown;
+        if (isDown && (key === ' ' || key === 'w' || key === 'arrowup')) {
+            e.preventDefault();
+            handleJump();
+        }
+    };
+    window.addEventListener('keydown', (e) => handleKey(e, true));
+    window.addEventListener('keyup', (e) => handleKey(e, false));
+
+    const setupTouch = (id, key) => {
+        const el = document.getElementById(id);
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); inputs[key] = true; }, {passive: false});
+        el.addEventListener('touchend', (e) => { e.preventDefault(); inputs[key] = false; }, {passive: false});
+    };
+    setupTouch('ctrl-left', 'left');
+    setupTouch('ctrl-right', 'right');
+    document.getElementById('ctrl-jump').addEventListener('touchstart', (e) => { e.preventDefault(); handleJump(); }, {passive: false});
+
+    document.getElementById('btn-start').onclick = () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        state.gameStarted = true;
+        state.gameActive = true;
+        window.focus(); 
+    };
+
+    document.getElementById('btn-restart').onclick = () => location.reload();
+    requestAnimationFrame(update);
+}
+
+function triggerQuiz(block) {
+    state.paused = true;
+    
+    // Spaced Repetition logic - retrieve delayed question if ready!
+    let dueIndex = upcomingQuestions.findIndex(item => item.delay <= 0);
+    if (dueIndex !== -1) {
+        currentQ = upcomingQuestions[dueIndex].qObj;
+        upcomingQuestions.splice(dueIndex, 1);
+    } else {
+        currentQ = generateQuestion();
+    }
+
+    const modal = document.getElementById('quiz-overlay');
+    const container = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback-area');
+    
+    document.getElementById('question-text').innerHTML = currentQ.q;
+    feedback.classList.add('hidden');
+    container.classList.remove('hidden');
+    container.innerHTML = '';
+    
+    currentQ.o.forEach(optHtml => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn bg-white text-blue-900 active:bg-yellow-400 border-b-[6px] border-blue-500 hover:border-blue-600'; 
+        btn.innerHTML = optHtml;
+        btn.onclick = () => {
+            Array.from(container.children).forEach(b => b.disabled = true);
+            
+            // Advance delay for remaining scheduled repeat questions
+            upcomingQuestions.forEach(item => item.delay--);
+
+            if (optHtml === currentQ.a) {
+                // Correct Answer - Fireworks!
+                state.score += 500;
+                document.getElementById('stats-score').innerText = state.score;
+                
+                feedback.classList.remove('hidden');
+                container.classList.add('hidden');
+                feedback.className = "mt-4 p-4 rounded-[20px] border-[6px] border-green-500 bg-green-100 text-center shrink-0";
+                document.getElementById('feedback-title').innerText = "CORRECT!";
+                document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-1 text-green-600";
+                document.getElementById('feedback-detail').innerHTML = "Praise God! Keep going!";
+                
+                spawnFireworks(player.x + player.w/2, player.y);
+                setTimeout(() => resume(), 1200);
+
+            } else {
+                // Wrong Answer - Pit Fall & Schedule Repeat
+                upcomingQuestions.push({ qObj: currentQ, delay: 3 });
+                
+                feedback.classList.remove('hidden');
+                container.classList.add('hidden');
+                feedback.className = "mt-4 p-4 rounded-[20px] border-[6px] border-red-500 bg-red-100 text-center shrink-0";
+                document.getElementById('feedback-title').innerText = "MISS!";
+                document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-1 text-red-600";
+                
+                // Show corrected answer in a compact way
+                document.getElementById('feedback-detail').innerHTML = `The correct answer was:<br><div class="mt-2 text-sm font-normal">${currentQ.a}</div>`;
+                
+                state.pit.active = true;
+                state.pit.x = player.x - 115; // Center pit under player
+                
+                setTimeout(() => resume(), 2500);
+            }
+        };
+        container.appendChild(btn);
+    });
+    modal.classList.remove('hidden');
+}
+
+function updateLivesHUD() {
+    document.getElementById('stats-lives').innerText = '❤️'.repeat(Math.max(0, state.lives)) + '🖤'.repeat(Math.max(0, 5 - state.lives));
+}
+
+function resume() {
+    document.getElementById('quiz-overlay').classList.add('hidden');
+    state.paused = false;
+}
+
+function handleFallDeath() {
+    state.lives--;
+    updateLivesHUD();
+    state.pit.active = false;
+    
+    if (state.lives <= 0) {
+        endGame("GAME OVER", "You fell too many times!");
+    } else {
+        player.y = -100;
+        player.x = Math.max(0, player.x - 300);
+        player.vy = 0;
+        player.grounded = false;
+    }
+}
+
+function spawnFireworks(x, y) {
+    const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ffffff'];
+    for(let i=0; i<60; i++) {
+        particles.push({
+            x: x, y: y - 50,
+            vx: (Math.random() - 0.5) * 20,
+            vy: (Math.random() - 0.5) * 20 - 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            life: 1.0,
+            decay: Math.random() * 0.02 + 0.015,
+            size: Math.random() * 6 + 3
+        });
+    }
+}
+
+function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.4;
+        p.life -= p.decay;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+}
+
+function update() {
+    if (state.gameStarted && state.gameActive && !state.paused) {
+        if (inputs.right) { player.vx = player.speed; player.facingRight = true; player.frame += 0.25; }
+        else if (inputs.left) { player.vx = -player.speed; player.facingRight = false; player.frame += 0.25; }
+        else { player.vx *= 0.85; player.frame = 0; }
+
+        player.vy += 1.0; 
+        player.x += player.vx;
+        player.y += player.vy;
+
+        let isOverPit = false;
+        if (state.pit.active) {
+            if (player.x + player.w/2 > state.pit.x && player.x + player.w/2 < state.pit.x + state.pit.w) {
+                isOverPit = true;
+            }
+        }
+
+        if (player.y + player.h > state.groundY && !isOverPit) { 
+            player.y = state.groundY - player.h;
+            player.vy = 0; 
+            player.grounded = true;
+            player.jumpsAvailable = 2;
+        } else if (player.y > state.viewportH + 100) {
+            handleFallDeath();
+        }
+
+        blocks.forEach(b => {
+            if (!b.active && b.type === 'quiz') return;
+            
+            if (player.x < b.x + b.w && player.x + player.w > b.x && 
+                player.y < b.y + b.h && player.y + player.h > b.y) {
+                
+                if (player.vy < 0 && player.y > b.y + b.h - 35) {
+                    player.vy = 5;
+                    if (b.type === 'quiz' && b.active) {
+                        b.active = false;
+                        triggerQuiz(b);
+                    }
+                } 
+                else if (player.vy > 0 && player.y + player.h < b.y + 35) {
+                    player.y = b.y - player.h;
+                    player.vy = 0;
+                    player.grounded = true;
+                    player.jumpsAvailable = 2;
+                }
+                else if (player.vx > 0 && player.x + player.w < b.x + 25) { player.x = b.x - player.w; }
+                else if (player.vx < 0 && player.x > b.x + b.w - 25) { player.x = b.x + b.w; }
+            }
+        });
+
+        if (player.x < 0) player.x = 0;
+        
+        let targetCamX = -player.x + (state.viewportW * 0.3);
+        state.cameraX += (targetCamX - state.cameraX) * 0.15;
+        if (state.cameraX > 0) state.cameraX = 0;
+        
+        updateParticles();
+    }
+    render();
+    requestAnimationFrame(update);
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Background
+    ctx.fillStyle = "#5c94fc";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    for(let i=0; i<20; i++) {
+        ctx.beginPath(); 
+        ctx.ellipse((300 + i*600) + (state.cameraX * 0.2), 150 + (i%3)*50, 80, 40, 0, 0, Math.PI*2); 
+        ctx.fill();
+    }
+    
+    ctx.save();
+    ctx.translate(state.cameraX, 0);
+    
+    // Pit & Ground Logic
+    if (state.pit.active) {
+        ctx.fillStyle = "#88d800"; ctx.fillRect(-5000, state.groundY, 5000 + state.pit.x, 30);
+        ctx.fillStyle = "#c84c0c"; ctx.fillRect(-5000, state.groundY + 30, 5000 + state.pit.x, 200);
+        ctx.fillStyle = "#88d800"; ctx.fillRect(state.pit.x + state.pit.w, state.groundY, 60000, 30);
+        ctx.fillStyle = "#c84c0c"; ctx.fillRect(state.pit.x + state.pit.w, state.groundY + 30, 60000, 200);
+    } else {
+        ctx.fillStyle = "#88d800"; ctx.fillRect(-5000, state.groundY, 60000, 30);
+        ctx.fillStyle = "#c84c0c"; ctx.fillRect(-5000, state.groundY + 30, 60000, 200);
+    }
+    
+    ctx.strokeStyle = "rgba(0,0,0,0.1)"; ctx.lineWidth = 4;
+    for(let i=0; i<60; i++) {
+        let lineX = i * 500;
+        if (!state.pit.active || (lineX < state.pit.x || lineX > state.pit.x + state.pit.w)) {
+            ctx.beginPath(); ctx.moveTo(lineX, state.groundY+30); ctx.lineTo(lineX, state.viewportH); ctx.stroke();
+        }
+    }
+
+    // Blocks
+    blocks.forEach(b => { 
+        if (!b.active && b.type === 'quiz') {
+            ctx.fillStyle = '#6b7280'; ctx.beginPath(); 
+            if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, 12); else ctx.rect(b.x, b.y, b.w, b.h);
+            ctx.fill(); ctx.strokeStyle = '#374151'; ctx.lineWidth = 6; ctx.stroke();
+            return;
+        }
+        
+        if (b.type === 'quiz') {
+            ctx.fillStyle = '#fbbf24'; ctx.beginPath(); 
+            if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, 12); else ctx.rect(b.x, b.y, b.w, b.h);
+            ctx.fill(); ctx.strokeStyle = '#92400e'; ctx.lineWidth = 6; ctx.stroke();
+            ctx.fillStyle = '#0f172a'; ctx.font = 'black 56px Inter'; ctx.textAlign = 'center';
+            ctx.fillText('?', b.x + b.w/2, b.y + b.h/2 + 20);
+        } else {
+            ctx.fillStyle = '#c84c0c'; ctx.beginPath(); 
+            if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, 6); else ctx.rect(b.x, b.y, b.w, b.h);
+            ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 4; ctx.stroke();
+        }
+    });
+    
+    // Character
+    ctx.save();
+    ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
+    if (!player.facingRight) ctx.scale(-1, 1);
+    
+    const walk = player.grounded ? Math.sin(player.frame * 2) * 6 : 0;
+    ctx.fillStyle = "#ef4444"; ctx.fillRect(-25, -45 + walk, 50, 20);
+    ctx.fillStyle = "#ffdbac"; ctx.fillRect(-20, -25 + walk, 40, 35);
+    ctx.fillStyle = "#000"; ctx.fillRect(10, -15 + walk, 5, 5);
+    ctx.fillStyle = "#ef4444"; ctx.fillRect(-22, 10 + walk, 44, 30);
+    ctx.fillStyle = "#2563eb"; ctx.fillRect(-22, 25 + walk, 44, 15);
+    
+    let legY1 = 40, legY2 = 40;
+    if (!player.grounded) { legY1 = 30; legY2 = 45; } else { legY1 = 40 - walk; legY2 = 40 + walk; }
+    ctx.fillRect(-22, legY1, 18, 20);
+    ctx.fillRect(4, legY2, 18, 20);
+    ctx.restore();
+    
+    // Fireworks Particles
+    particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    ctx.restore();
+}
+
+function endGame(status, msg) {
+    state.gameActive = false;
+    document.getElementById('end-status').innerText = status;
+    document.getElementById('final-score').innerText = state.score;
+    document.getElementById('end-screen').classList.remove('hidden');
+}
+
+setInterval(() => {
+    if (state.gameActive && !state.paused && state.timer > 0) {
+        state.timer--;
+        document.getElementById('stats-timer').innerText = state.timer + "s";
+        if (state.timer <= 0) endGame("TIME'S UP!", "Good effort!");
+    }
+}, 1000);
+
+window.onload = init;
+</script>
+</body>
+</html>
