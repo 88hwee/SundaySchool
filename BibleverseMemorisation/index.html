@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bible Memory Warrior: Sunday School Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;700;900&display=swap');
+        
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+            --sar: env(safe-area-inset-right);
+        }
+
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body { 
+            margin: 0; 
+            background: #0f172a;
+            font-family: 'Fredoka', 'Inter', sans-serif; 
+            overflow: hidden; 
+            color: white; 
+            touch-action: none; 
+            height: 100dvh;
+            width: 100vw;
+            position: fixed;
+        }
+        
+        #game-container { 
+            position: relative; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden;
+        }
+
+        canvas { 
+            display: block; 
+            width: 100%;
+            height: 100%;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .control-btn:active {
+            transform: scale(0.85) translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .option-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0.6rem 0.8rem;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            border-radius: 20px;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+            border: 4px solid #3b82f6;
+            background: linear-gradient(to bottom, #eff6ff, #dbeafe);
+            color: #1e3a8a;
+            cursor: pointer;
+        }
+
+        .option-btn:hover {
+            border-color: #2563eb;
+            background: linear-gradient(to bottom, #dbeafe, #bfdbfe);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2);
+        }
+
+        .option-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+        }
+
+        .en-opt-text {
+            font-weight: 700;
+            font-size: clamp(13px, 1.9vh, 18px);
+            line-height: 1.25;
+            color: #1e3a8a;
+        }
+
+        .zh-opt-text {
+            font-weight: 900;
+            font-size: clamp(15px, 2.3vh, 21px);
+            color: #0f172a;
+            margin-top: 3px;
+            line-height: 1.25;
+        }
+
+        #hud {
+            padding-top: calc(1rem + var(--sat));
+            padding-left: calc(1.5rem + var(--sal));
+            padding-right: calc(1.5rem + var(--sar));
+        }
+
+        .pixel-text {
+            text-shadow: 3px 3px 0px #000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- Start Screen -->
+    <div id="start-screen" class="absolute inset-0 z-[110] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-blue-600 via-indigo-800 to-slate-900">
+        <div class="mb-6 bg-amber-400 p-6 rounded-[35px] shadow-[0_12px_0_#b45309] rotate-[-1deg] border-6 border-white">
+            <h1 class="text-4xl md:text-6xl font-black text-blue-950 italic tracking-tight uppercase">Bible Memory Warrior</h1>
+        </div>
+        <p class="text-amber-300 font-black text-xl tracking-widest mb-6 uppercase pixel-text">A TO Z SCRIPTURE MEMORISATION TEST</p>
+        
+        <div class="mb-8 text-white text-sm md:text-base space-y-2 max-w-xl bg-white/10 backdrop-blur-md p-6 rounded-[30px] border-4 border-white/30 shadow-2xl">
+            <p class="font-bold">⭐ Jump into <span class="text-amber-300 font-black">? BLOCKS</span> to test your Scripture memory!</p>
+            <p>⭐ Features: Find Verse, Where is it in the Bible, Fill in the Blanks, and True/False across all 26 A-Z verses.</p>
+            <p class="text-xs font-black uppercase bg-amber-400/30 py-2 px-4 rounded-xl text-amber-200">Sunday School Exam Edition (Full Bilingual Support)</p>
+        </div>
+
+        <button id="btn-start" class="px-16 py-6 bg-amber-400 text-blue-950 font-black rounded-full shadow-[0_10px_0_#b45309] hover:shadow-[0_5px_0_#b45309] hover:translate-y-1 uppercase tracking-widest text-2xl transition-all border-4 border-white">
+            START MEMORY TEST
+        </button>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="absolute top-0 left-0 w-full flex justify-between items-start pointer-events-none z-20">
+        <div class="bg-black/40 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/30 shadow-lg">
+            <p class="text-[10px] uppercase font-black text-white/70 tracking-wider">Lives</p>
+            <p id="stats-lives" class="text-2xl font-black text-red-500">❤️❤️❤️❤️❤️</p>
+        </div>
+        <div class="bg-black/40 backdrop-blur-md px-8 py-2.5 rounded-2xl border-2 border-white/30 text-center shadow-lg">
+            <p class="text-[10px] uppercase font-black text-white/70 tracking-wider">Time Remaining</p>
+            <p id="stats-timer" class="text-2xl font-black text-amber-300">180s</p>
+        </div>
+        <div class="bg-black/40 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/30 text-right shadow-lg">
+            <p class="text-[10px] uppercase font-black text-white/70 tracking-wider">Score</p>
+            <p id="stats-score" class="text-2xl font-black text-emerald-400">0</p>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Quiz Overlay -->
+    <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="w-full max-w-5xl h-[84dvh] bg-slate-900 border-6 border-amber-400 rounded-[30px] p-5 shadow-2xl flex flex-col justify-between">
+            <div class="flex justify-between items-center mb-2 shrink-0">
+                <span id="quiz-mode-badge" class="bg-blue-600 text-white text-xs px-4 py-1.5 rounded-full font-black uppercase tracking-widest shadow">Bible Memory Test</span>
+                <span class="text-amber-400 text-xs uppercase font-black tracking-widest">Hit ? Block</span>
+            </div>
+            
+            <div class="bg-blue-950/90 border-3 border-blue-400/50 rounded-2xl px-5 py-3 mb-3 shrink-0 shadow-inner">
+                <p id="question-text" class="text-base md:text-xl font-black text-amber-300 leading-snug mb-1"></p>
+                <p id="question-text-zh" class="text-lg md:text-2xl font-black text-white leading-snug"></p>
+            </div>
+
+            <!-- 2x2 Grid for Options -->
+            <div id="options-container" class="grid grid-cols-2 gap-3.5 flex-grow min-h-0"></div>
+            
+            <!-- Feedback Area -->
+            <div id="feedback-area" class="hidden flex-grow flex flex-col items-center justify-center p-6 rounded-2xl border-4 text-center shadow-xl">
+                <p id="feedback-title" class="font-black uppercase text-3xl mb-3"></p>
+                <p id="feedback-detail" class="text-base md:text-lg text-blue-950 font-black mb-6 max-w-2xl leading-relaxed"></p>
+                <button id="btn-continue" class="px-8 py-3 bg-amber-400 text-blue-950 font-black rounded-full shadow-[0_6px_0_#b45309] hover:scale-105 uppercase tracking-wider text-lg border-2 border-white">
+                    PRESS ARROW KEY OR TAP TO CONTINUE ➡️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="hidden absolute inset-0 z-[200] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-blue-700 to-indigo-950">
+        <div class="mb-6 bg-white p-6 rounded-[35px] shadow-2xl border-6 border-amber-400">
+            <h2 id="end-status" class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-blue-950"></h2>
+        </div>
+        <div class="mb-8">
+            <p class="text-amber-300 font-black uppercase tracking-widest mb-2 pixel-text text-lg">Final Test Score</p>
+            <div class="text-8xl md:text-9xl leading-none font-black text-white drop-shadow-[0_10px_0_rgba(0,0,0,0.5)]" id="final-score">0</div>
+        </div>
+        <button id="btn-restart" class="px-16 py-6 bg-amber-400 text-blue-950 font-black rounded-full shadow-[0_10px_0_#b45309] uppercase tracking-widest text-2xl transition-all border-4 border-white hover:scale-105">
+            TRY AGAIN
+        </button>
+    </div>
+
+    <!-- Touch Controls -->
+    <div class="absolute inset-0 pointer-events-none z-30">
+        <div class="absolute bottom-8 left-8 flex gap-6 pointer-events-auto">
+            <div id="ctrl-left" class="control-btn w-24 h-24">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M15 19l-7-7 7-7"/></svg>
+            </div>
+            <div id="ctrl-right" class="control-btn w-24 h-24">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M9 5l7 7-7 7"/></svg>
+            </div>
+        </div>
+        <div class="absolute bottom-8 right-8 pointer-events-auto">
+            <div id="ctrl-jump" class="control-btn w-32 h-32 bg-amber-400/80 border-amber-300 shadow-2xl flex flex-col items-center justify-center">
+                <div class="text-blue-950 font-black text-3xl italic tracking-wider">JUMP</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const BIBLE_DATA = [
+    { key: 'A', ref: 'Matthew 7:7', en: '“Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you.”', zh: '你 们 祈 求 ， 就 给 你 们 ； 寻 找 ， 就 寻 见 ； 叩 门 ， 就 给 你 们 开 门 。' },
+    { key: 'B', ref: 'Acts 16:31', en: 'And they said, “Believe in the Lord Jesus, and you will be saved, you and your household.”', zh: '当 信 主 耶 稣 ， 你 和 你 一 家 都 必 得 救 。' },
+    { key: 'C', ref: '1 John 1:9', en: 'If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all unrighteousness.', zh: '我 们 若 认 自 己 的 罪 ， 神 是 信 实 的 ， 是 公 义 的 ， 必 要 赦 免 我 们 的 罪 ， 洗 净 我 们 一 切 的 不 义 。' },
+    { key: 'D', ref: 'Psalm 37:4', en: 'Delight yourself in the Lord, and he will give you the desires of your heart.', zh: '又 要 以 耶 和 华 为 乐 ， 他 就 将 你 心 里 所 求 的 赐 给 你 。' },
+    { key: 'E', ref: 'Joshua 1:9', en: 'Have I not commanded you? Be strong and courageous. Do not be frightened... for the Lord your God is with you.', zh: '我 岂 没 有 吩 咐 你 吗 ？ 你 当 刚 强 壮 胆 ！ 不 要 惧 怕 ， 因 为 耶 和 华 你 的 神 必 与 你 同 在 。' },
+    { key: 'F', ref: 'Isaiah 41:10', en: 'Fear not, for I am with you; be not dismayed, for I am your God; I will strengthen you, I will help you.', zh: '你 不 要 害 怕 ， 因 为 我 与 你 同 在 ； 不 要 惊 惶 ， 因 为 我 是 你 的 神 。 我 必 坚 固 你 ， 我 必 帮 助 你 。' },
+    { key: 'G', ref: '1 Thessalonians 5:18', en: 'Give thanks in all circumstances; for this is the will of God in Christ Jesus for you.', zh: '凡 事 谢 恩 ； 因 为 这 是 神 在 基 督 耶 稣 里 向 你 们 所 定 的 旨 意 。' },
+    { key: 'H', ref: 'Romans 15:13', en: 'May the God of hope fill you with all joy and peace in believing, so that you may abound in hope.', zh: '但 愿 使 人 有 盼 望 的 神 ， 因 信 将 诸 般 的 喜 乐 充 满 你 们 的 心 ， 使 你 们 大 有 盼 望 。' },
+    { key: 'I', ref: 'Proverbs 10:9', en: 'Whoever walks in integrity walks securely, but he who makes his ways crooked will be found out.', zh: '行 正 直 路 的 ， 步 步 安 稳 ； 走 弯 曲 道 的 ， 必 致 败 露 。' },
+    { key: 'J', ref: 'Nehemiah 8:10', en: 'And do not be grieved, for the joy of the Lord is your strength.', zh: '你 们 不 要 忧 愁 ， 因 靠 耶 和 华 而 得 的 喜 乐 是 你 们 的 力 量 。' },
+    { key: 'K', ref: 'Matthew 6:33', en: 'But seek first the kingdom of God and his righteousness, and all these things will be added to you.', zh: '你 们 要 先 求 他 的 国 和 他 的 义 ， 这 些 东 西 都 要 加 给 你 们 了 。' },
+    { key: 'L', ref: 'John 3:16', en: 'For God so loved the world, that he gave his only Son, that whoever believes in him should have eternal life.', zh: '神 爱 世 人 ， 甚 至 将 他 的 独 生 子 赐 给 他 们 ， 叫 一 切 信 他 的 不 至 灭 亡 ， 反 得 永 生 。' },
+    { key: 'M', ref: 'Lamentations 3:22-23', en: 'The steadfast love of the Lord never ceases; his mercies never come to an end; they are new every morning.', zh: '我 们 不 致 消 灭 ， 是 出 於 耶 和 华 诸 般 的 慈 爱 ； 每 早 晨 ， 这 都 是 新 的 ； 你 的 诚 实 广 大 ！' },
+    { key: 'N', ref: 'Psalm 34:18', en: 'The Lord is near to the brokenhearted and saves the crushed in spirit.', zh: '耶 和 华 靠 近 伤 心 的 人 ， 拯 救 灵 性 痛 悔 的 人 。' },
+    { key: 'O', ref: 'John 14:15', en: 'If you love me, you will keep my commandments.', zh: '你 们 若 爱 我 ， 就 必 遵 守 我 的 命 令 。' },
+    { key: 'P', ref: 'Psalm 100:4', en: 'Enter his gates with thanksgiving, and his courts with praise! Give thanks to him; bless his name!', zh: '当 称 谢 进 入 他 的 门 ； 当 赞 美 进 入 他 的 院 。 当 感 谢 他 ， 称 颂 他 的 名 ！' },
+    { key: 'Q', ref: 'Psalm 46:10', en: 'Be still, and know that I am God. I will be exalted among the nations, in the earth.', zh: '你 们 要 休 息 ， 要 知 道 我 是 神 ！ 我 必 在 外 邦 中 被 尊 崇 。' },
+    { key: 'R', ref: 'Philippians 4:4', en: 'Rejoice in the Lord always; again I will say, rejoice.', zh: '你 们 要 靠 主 常 常 喜 乐 。 我 再 说 ， 你 们 要 喜 乐 。' },
+    { key: 'S', ref: 'Philippians 4:13', en: 'I can do all things through him who strengthens me.', zh: '我 靠 着 那 加 给 我 力 量 的 ， 凡 事 都 能 做 。' },
+    { key: 'T', ref: 'Proverbs 3:5-6', en: 'Trust in the Lord with all your heart, and do not lean on your own understanding.', zh: '你 要 专 心 仰 赖 耶 和 华 ， 不 可 倚 靠 自 己 的 聪 明 ， 在 你 一 切 所 行 事 上 认 定 他 。' },
+    { key: 'U', ref: 'Proverbs 2:6', en: 'For the Lord gives wisdom; from his mouth come knowledge and understanding.', zh: '因 为 耶 和 华 赐 人 智 慧 ； 知 识 和 聪 明 都 由 他 口 而 出 。' },
+    { key: 'V', ref: '1 Corinthians 15:57', en: 'Thanks be to God, who gives us the victory through our Lord Jesus Christ.', zh: '感 谢 神 ， 使 我 们 藉 着 我 们 的 主 耶 稣 基 督 得 胜 。' },
+    { key: 'W', ref: 'Psalm 119:105', en: 'Your word is a lamp to my feet and a light to my path.', zh: '你 的 话 是 我 脚 前 的 灯 ， 是 我 路 上 的 光 。' },
+    { key: 'X', ref: 'Psalm 34:3', en: 'Oh, magnify the Lord with me, and let us exalt his name together!', zh: '你 们 和 我 当 称 耶 和 华 为 大 ， 一 同 高 举 他 的 名 ！' },
+    { key: 'Y', ref: 'Romans 12:1', en: 'Present your bodies as a living sacrifice, holy and acceptable to God.', zh: '将 身 体 献 上 ， 当 作 活 祭 ， 是 圣 洁 的 ， 是 神 所 喜 悦 的 ； 你 们 如 此 事 奉 乃 是 理 所 当 然 的 。' },
+    { key: 'Z', ref: 'Romans 12:11', en: 'Do not be slothful in zeal, be fervent in spirit, serve the Lord.', zh: '殷 勤 不 可 懒 惰 。 要 心 里 火 热 ， 常 常 服 事 主 。' }
+];
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let state = {
+    gameStarted: false,
+    gameActive: false,
+    paused: false,
+    waitingForContinue: false,
+    timer: 180,
+    lives: 5,
+    score: 0,
+    viewportW: window.innerWidth,
+    viewportH: window.innerHeight,
+    groundY: 0,
+    cameraX: 0,
+    isFallingIntoHole: false
+};
+
+const player = { 
+    x: 200, y: 0, w: 45, h: 65,
+    vx: 0, vy: 0, 
+    speed: 7, jumpPower: -18, 
+    grounded: false, facingRight: true,
+    jumpsAvailable: 2,
+    frame: 0
+};
+
+let sessionDeck = [];
+let pendingQueue = [];
+let blocks = [];
+let fireworks = [];
+
+function shuffle(a) {
+    let array = [...a];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function initBlocks() {
+    blocks = [];
+    for (let i = 0; i < 60; i++) {
+        blocks.push({
+            x: 700 + (i * 450),
+            y: state.groundY - 220 - (Math.random() * 80),
+            w: 75, h: 75,
+            active: true,
+            type: 'quiz'
+        });
+    }
+}
+
+function resize() {
+    state.viewportW = window.innerWidth;
+    state.viewportH = window.innerHeight;
+    canvas.width = state.viewportW;
+    canvas.height = state.viewportH;
+    state.groundY = state.viewportH - 80;
+    
+    if (!state.gameStarted) {
+        player.y = state.groundY - player.h;
+        initBlocks();
+    }
+}
+
+const inputs = { left: false, right: false };
+
+function handleJump() {
+    if (!state.gameActive || state.paused || state.isFallingIntoHole) return;
+    if (player.jumpsAvailable > 0) {
+        player.vy = player.jumpPower;
+        player.jumpsAvailable--;
+        player.grounded = false;
+    }
+}
+
+function resumeGame() {
+    if (!state.waitingForContinue) return;
+    state.waitingForContinue = false;
+    document.getElementById('quiz-overlay').classList.add('hidden');
+    state.paused = false;
+    state.isFallingIntoHole = false;
+}
+
+function init() {
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 300));
+    resize();
+
+    const handleKey = (e, isDown) => {
+        if (!state.gameActive) return;
+        
+        if (state.waitingForContinue) {
+            if (isDown) {
+                e.preventDefault();
+                resumeGame();
+            }
+            return;
+        }
+
+        if (state.paused) return;
+
+        const key = e.key.toLowerCase();
+        if (key === 'arrowleft' || key === 'a') inputs.left = isDown;
+        if (key === 'arrowright' || key === 'd') inputs.right = isDown;
+        if (isDown && (key === ' ' || key === 'w' || key === 'arrowup')) {
+            e.preventDefault();
+            handleJump();
+        }
+    };
+    window.addEventListener('keydown', (e) => handleKey(e, true));
+    window.addEventListener('keyup', (e) => handleKey(e, false));
+
+    const setupTouch = (id, key) => {
+        const el = document.getElementById(id);
+        el.addEventListener('touchstart', (e) => { 
+            if (state.waitingForContinue) return;
+            e.preventDefault(); 
+            inputs[key] = true; 
+        }, {passive: false});
+        el.addEventListener('touchend', (e) => { 
+            if (state.waitingForContinue) return;
+            e.preventDefault(); 
+            inputs[key] = false; 
+        }, {passive: false});
+    };
+    setupTouch('ctrl-left', 'left');
+    setupTouch('ctrl-right', 'right');
+    document.getElementById('ctrl-jump').addEventListener('touchstart', (e) => {
+        if (state.waitingForContinue) return;
+        e.preventDefault(); 
+        handleJump(); 
+    }, {passive: false});
+
+    document.getElementById('btn-continue').onclick = () => resumeGame();
+    document.getElementById('quiz-overlay').onclick = () => {
+        if (state.waitingForContinue) resumeGame();
+    };
+
+    document.getElementById('btn-start').onclick = () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        sessionDeck = shuffle([...BIBLE_DATA]);
+        pendingQueue = [];
+        state.gameStarted = true;
+        state.gameActive = true;
+        window.focus();
+    };
+
+    document.getElementById('btn-restart').onclick = () => location.reload();
+    requestAnimationFrame(update);
+}
+
+function getNextQuestion() {
+    if (pendingQueue.length > 0 && pendingQueue[0].counter <= 0) {
+        return pendingQueue.shift().item;
+    }
+    if (sessionDeck.length === 0) {
+        sessionDeck = shuffle([...BIBLE_DATA]);
+    }
+    return sessionDeck.shift();
+}
+
+function triggerQuiz(block) {
+    state.paused = true;
+    state.waitingForContinue = false;
+    pendingQueue.forEach(p => p.counter--);
+
+    const item = getNextQuestion();
+    const modal = document.getElementById('quiz-overlay');
+    const container = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback-area');
+    const qTextEn = document.getElementById('question-text');
+    const qTextZh = document.getElementById('question-text-zh');
+    const badge = document.getElementById('quiz-mode-badge');
+    
+    feedback.classList.add('hidden');
+    container.classList.remove('hidden');
+    container.innerHTML = '';
+
+    const modes = ['find_verse', 'where_is_verse', 'fill_blank', 'true_false'];
+    const mode = modes[Math.floor(Math.random() * modes.length)];
+
+    let correctAnswerVal = item;
+    let options = [];
+    const others = BIBLE_DATA.filter(x => x.ref !== item.ref);
+    const shuffledOthers = shuffle(others);
+
+    if (mode === 'find_verse') {
+        badge.innerText = "Mode: Find the Verse";
+        qTextEn.innerText = `Which verse matches reference: ${item.ref}?`;
+        qTextZh.innerText = `哪 一 节 经 文 符 合 经 文 出 处 ： ${item.ref} ？`;
+        
+        options = shuffle([item, ...shuffledOthers.slice(0, 3)]);
+    } 
+    else if (mode === 'where_is_verse') {
+        badge.innerText = "Mode: Where is it in the Bible?";
+        qTextEn.innerText = `Where is this verse in the Bible?\n"${item.en}"`;
+        qTextZh.innerText = `这 节 经 文 在 圣 经 的 哪 里 ？\n「${item.zh}」`;
+        
+        const wrongRefs = shuffledOthers.slice(0, 3).map(w => ({ ref: w.ref, en: w.ref, zh: w.ref }));
+        options = shuffle([{ ref: item.ref, en: item.ref, zh: item.ref }, ...wrongRefs]);
+        correctAnswerVal = item.ref;
+    }
+    else if (mode === 'fill_blank') {
+        badge.innerText = "Mode: Fill in the Blanks";
+        const wordsEn = item.en.split(' ');
+        const splitIdxEn = Math.max(2, Math.floor(wordsEn.length / 2));
+        const firstHalfEn = wordsEn.slice(0, splitIdxEn).join(' ');
+        const secondHalfEn = wordsEn.slice(splitIdxEn).join(' ');
+
+        const wordsZh = Array.from(item.zh.replace(/\s+/g, ''));
+        const splitIdxZh = Math.max(1, Math.floor(wordsZh.length / 2));
+        const firstHalfZh = wordsZh.slice(0, splitIdxZh).join(' ');
+        const secondHalfZh = wordsZh.slice(splitIdxZh).join('');
+
+        qTextEn.innerText = `Complete the verse for ${item.ref}:\n"${firstHalfEn} ______"`;
+        qTextZh.innerText = `补 全 经 文 (${item.ref})：\n「${firstHalfZh} ......」`;
+        
+        const correctFrag = { en: secondHalfEn, zh: secondHalfZh, isFragment: true, ref: item.ref };
+        const wrongFrags = shuffledOthers.slice(0, 3).map(w => {
+            const wWordsEn = w.en.split(' ');
+            const wWordsZh = Array.from(w.zh.replace(/\s+/g, ''));
+            return {
+                en: wWordsEn.slice(Math.floor(wWordsEn.length / 2)).join(' '),
+                zh: wWordsZh.slice(Math.floor(wWordsZh.length / 2)).join(''),
+                isFragment: true,
+                ref: w.ref
+            };
+        });
+        options = shuffle([correctFrag, ...wrongFrags]);
+        correctAnswerVal = correctFrag;
+    }
+    else if (mode === 'true_false') {
+        badge.innerText = "Mode: True or False";
+        const isTrue = Math.random() > 0.5;
+        const testItem = isTrue ? item : shuffledOthers[0];
+        
+        qTextEn.innerText = `True or False? Does ${item.ref} match this verse?\n"${testItem.en}"`;
+        qTextZh.innerText = `是 对 还 是 错 ？ ${item.ref} 是 这 节 经 文 吗 ？\n「${testItem.zh}」`;
+        
+        options = [
+            { ref: "TRUE (正确)", en: "TRUE (正确)", zh: "TRUE (正确)" },
+            { ref: "FALSE (错误)", en: "FALSE (错误)", zh: "FALSE (错误)" }
+        ];
+        correctAnswerVal = isTrue ? "TRUE (正确)" : "FALSE (错误)";
+    }
+
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        
+        if (mode === 'true_false') {
+            btn.innerHTML = `<span class="en-opt-text" style="font-size: clamp(16px, 2.3vh, 22px);">${opt.ref}</span>`;
+        } else if (mode === 'where_is_verse') {
+            btn.innerHTML = `<span class="en-opt-text" style="font-size: clamp(20px, 3vh, 28px); font-weight: 900;">${opt.ref}</span>`;
+        } else if (opt.isFragment) {
+            btn.innerHTML = `
+                <span class="en-opt-text">${opt.en}</span>
+                <span class="zh-opt-text">${opt.zh}</span>
+            `;
+        } else {
+            // Clean option format: Verse text on top, Chinese on bottom (no reference tag prefix to keep it as a test)
+            btn.innerHTML = `
+                <span class="en-opt-text">${opt.en}</span>
+                <span class="zh-opt-text">${opt.zh}</span>
+            `;
+        }
+
+        btn.onclick = () => {
+            Array.from(container.children).forEach(b => b.disabled = true);
+            let isCorrect = false;
+            
+            if (mode === 'true_false') {
+                isCorrect = (opt.ref === correctAnswerVal);
+            } else if (mode === 'where_is_verse') {
+                isCorrect = (opt.ref === correctAnswerVal);
+            } else if (mode === 'fill_blank') {
+                isCorrect = (opt.en === correctAnswerVal.en);
+            } else {
+                isCorrect = (opt.ref === correctAnswerVal.ref);
+            }
+            
+            container.classList.add('hidden');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                state.score += 1000;
+                document.getElementById('stats-score').innerText = state.score;
+                triggerFireworks();
+                
+                feedback.className = "flex-grow flex flex-col items-center justify-center p-6 rounded-2xl border-4 border-emerald-500 bg-emerald-100 text-center shadow-xl";
+                document.getElementById('feedback-title').innerText = "CORRECT! 🌟";
+                document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-3 text-emerald-700";
+                document.getElementById('feedback-detail').innerText = "Praise the Lord! Wow: you are a little bible warrior! Looks like you are etching God's words in your heart! The next thing is to apply it !!";
+                
+                state.waitingForContinue = true;
+            } else {
+                state.lives--;
+                updateLivesHUD();
+                state.isFallingIntoHole = true;
+                
+                feedback.className = "flex-grow flex flex-col items-center justify-center p-6 rounded-2xl border-4 border-red-500 bg-red-100 text-center shadow-xl";
+                document.getElementById('feedback-title').innerText = "INCORRECT 🕳️";
+                document.getElementById('feedback-title').className = "font-black uppercase text-3xl mb-3 text-red-700";
+                document.getElementById('feedback-detail').innerText = `Correct Answer:\n${item.ref} - ${item.en}\n${item.zh}`;
+                
+                pendingQueue.push({ item: item, counter: 3 });
+
+                // Stay open so student can read the correct answer for 3 seconds before allowing continue
+                setTimeout(() => {
+                    if (state.lives <= 0) {
+                        endGame("GAME OVER", "The memory test failed.");
+                    } else {
+                        state.waitingForContinue = true;
+                    }
+                }, 3000);
+            }
+        };
+        container.appendChild(btn);
+    });
+
+    modal.classList.remove('hidden');
+}
+
+function updateLivesHUD() {
+    document.getElementById('stats-lives').innerText = '❤️'.repeat(Math.max(0, state.lives)) + '🖤'.repeat(Math.max(0, 5 - state.lives));
+}
+
+function triggerFireworks() {
+    for (let i = 0; i < 60; i++) {
+        fireworks.push({
+            x: window.innerWidth / 2 + (Math.random() * 500 - 250),
+            y: window.innerHeight / 2 + (Math.random() * 300 - 150),
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.5) * 14,
+            color: ['#fbbf24', '#ef4444', '#10b981', '#3b82f6', '#ec4899'][Math.floor(Math.random() * 5)],
+            alpha: 1
+        });
+    }
+}
+
+function update() {
+    if (state.gameStarted && state.gameActive && !state.paused && !state.waitingForContinue) {
+        if (state.isFallingIntoHole) {
+            player.y += 8;
+            player.x += (Math.random() - 0.5) * 6;
+        } else {
+            if (inputs.right) { player.vx = player.speed; player.facingRight = true; player.frame += 0.25; }
+            else if (inputs.left) { player.vx = -player.speed; player.facingRight = false; player.frame += 0.25; }
+            else { player.vx *= 0.85; player.frame = 0; }
+
+            player.vy += 0.9; 
+            player.x += player.vx;
+            player.y += player.vy;
+
+            if (player.y + player.h > state.groundY) { 
+                player.y = state.groundY - player.h;
+                player.vy = 0; 
+                player.grounded = true;
+                player.jumpsAvailable = 2;
+            }
+
+            blocks.forEach(b => {
+                if (!b.active && b.type === 'quiz') return;
+                
+                if (player.x < b.x + b.w && player.x + player.w > b.x && 
+                    player.y < b.y + b.h && player.y + player.h > b.y) {
+                    
+                    if (player.vy < 0 && player.y > b.y + b.h - 30) {
+                        player.vy = 4;
+                        if (b.type === 'quiz' && b.active) {
+                            b.active = false;
+                            triggerQuiz(b);
+                        }
+                    } 
+                    else if (player.vy > 0 && player.y + player.h < b.y + 30) {
+                        player.y = b.y - player.h;
+                        player.vy = 0;
+                        player.grounded = true;
+                        player.jumpsAvailable = 2;
+                    }
+                    else if (player.vx > 0 && player.x + player.w < b.x + 20) { player.x = b.x - player.w; }
+                    else if (player.vx < 0 && player.x > b.x + b.w - 20) { player.x = b.x + b.w; }
+                }
+            });
+        }
+
+        if (player.x < 0) player.x = 0;
+        
+        let targetCamX = -player.x + (state.viewportW * 0.25);
+        state.cameraX += (targetCamX - state.cameraX) * 0.15;
+        if (state.cameraX > 0) state.cameraX = 0;
+    }
+
+    render();
+    requestAnimationFrame(update);
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    skyGrad.addColorStop(0, '#1e1b4b');
+    skyGrad.addColorStop(0.5, '#312e81');
+    skyGrad.addColorStop(1, '#4338ca');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = "rgba(255,255,255,0.3)";
+    for(let i=0; i<25; i++) {
+        ctx.beginPath(); 
+        ctx.arc((i * 350) % 5000, (i * 70) % 300, 3, 0, Math.PI*2); 
+        ctx.fill();
+    }
+    
+    ctx.save();
+    ctx.translate(state.cameraX, 0);
+    
+    ctx.fillStyle = "#047857"; 
+    ctx.fillRect(-5000, state.groundY, 60000, 30);
+    ctx.fillStyle = "#1e293b"; 
+    ctx.fillRect(-5000, state.groundY + 30, 60000, 150);
+
+    blocks.forEach(b => { 
+        if (!b.active && b.type === 'quiz') {
+            ctx.fillStyle = '#475569'; 
+            ctx.beginPath(); 
+            if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, 12);
+            else ctx.rect(b.x, b.y, b.w, b.h);
+            ctx.fill();
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4; ctx.stroke();
+            return;
+        }
+        
+        ctx.fillStyle = '#f59e0b'; 
+        ctx.beginPath(); 
+        if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, 12);
+        else ctx.rect(b.x, b.y, b.w, b.h);
+        ctx.fill();
+        ctx.strokeStyle = '#b45309'; ctx.lineWidth = 5; ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 44px Fredoka'; ctx.textAlign = 'center';
+        ctx.fillText('?', b.x + b.w/2, b.y + b.h/2 + 15);
+    });
+    
+    ctx.save();
+    ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
+    if (!player.facingRight) ctx.scale(-1, 1);
+    
+    const walk = Math.sin(player.frame * 2) * 6;
+    ctx.fillStyle = "#dc2626"; 
+    ctx.fillRect(-18, -38 + walk, 36, 16);
+    ctx.fillStyle = "#e2e8f0"; 
+    ctx.fillRect(-15, -22 + walk, 30, 32);
+    ctx.fillStyle = "#dc2626"; 
+    ctx.fillRect(-15, 10 + walk, 30, 12);
+    ctx.fillStyle = "#2563eb"; 
+    ctx.fillRect(-16, 22 + walk, 12, 12);
+    ctx.fillRect(4, 22 + walk, 12, 12);
+    
+    ctx.fillStyle = "#e2e8f0"; 
+    ctx.fillRect(-14, -54 + walk, 28, 20);
+    ctx.fillStyle = "#38bdf8"; 
+    ctx.fillRect(-10, -48 + walk, 6, 5);
+    ctx.fillRect(4, -48 + walk, 6, 5);
+    ctx.restore();
+
+    fireworks.forEach((f, index) => {
+        f.x += f.vx;
+        f.y += f.vy;
+        f.alpha -= 0.02;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, f.alpha);
+        ctx.fillStyle = f.color;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        if (f.alpha <= 0) fireworks.splice(index, 1);
+    });
+
+    ctx.restore();
+}
+
+function endGame(status, msg) {
+    state.gameActive = false;
+    document.getElementById('end-status').innerText = status;
+    document.getElementById('final-score').innerText = state.score;
+    document.getElementById('end-screen').classList.remove('hidden');
+}
+
+setInterval(() => {
+    if (state.gameActive && !state.paused && !state.waitingForContinue && state.timer > 0) {
+        state.timer--;
+        document.getElementById('stats-timer').innerText = state.timer + "s";
+        if (state.timer <= 0) endGame("TIME'S UP!", "3 minutes completed.");
+    }
+}, 1000);
+
+window.onload = init;
+</script>
+</body>
+</html>
