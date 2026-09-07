@@ -51,13 +51,13 @@
         .arcade-btn {
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             border: 4px solid #ffffff;
-            box-shadow: 0 8px 0 #b45309, 0 15px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 0 #b45309, 0 12px 15px rgba(0,0,0,0.4);
             transition: all 0.1s ease;
         }
 
         .arcade-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 #b45309, 0 8px 10px rgba(0,0,0,0.4);
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #b45309, 0 6px 8px rgba(0,0,0,0.4);
         }
 
         .control-btn {
@@ -69,7 +69,7 @@
             align-items: center;
             justify-content: center;
             pointer-events: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             transition: transform 0.1s;
         }
 
@@ -78,7 +78,7 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Option cards designed to fit strictly without scrolling */
+        /* Option cards designed to fit strictly on one screen without any scrolling */
         .option-card {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
@@ -86,13 +86,14 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 0.5rem 0.75rem;
+            padding: 0.35rem 0.5rem;
             width: 100%;
             height: 100%;
-            border-radius: 16px;
+            min-height: 0;
+            border-radius: 12px;
             background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
             color: #1e3a8a;
-            box-shadow: 0 3px 0 #cbd5e1, 0 6px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 0 #cbd5e1, 0 5px 8px rgba(0,0,0,0.1);
             border: 3px solid #3b82f6;
             cursor: pointer;
             overflow: hidden;
@@ -102,19 +103,19 @@
             transform: translateY(-2px);
             border-color: #2563eb;
             background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
-            box-shadow: 0 5px 0 #94a3b8, 0 8px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 0 #94a3b8, 0 6px 10px rgba(0,0,0,0.15);
         }
 
         .option-card:active {
             transform: translateY(2px);
-            box-shadow: 0 2px 0 #94a3b8;
+            box-shadow: 0 1px 0 #94a3b8;
         }
 
         .en-card-text {
-            font-size: clamp(10px, 1.3vw, 14px);
+            font-size: clamp(10px, 1.1vw, 13px);
             color: #1e40af;
             font-weight: 700;
-            line-height: 1.15;
+            line-height: 1.1;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -122,11 +123,11 @@
         }
 
         .zh-card-text {
-            font-size: clamp(12px, 1.5vw, 16px);
+            font-size: clamp(11px, 1.3vw, 14px);
             color: #172554;
-            margin-top: 2px;
+            margin-top: 1px;
             font-weight: 900;
-            line-height: 1.15;
+            line-height: 1.1;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -134,9 +135,9 @@
         }
 
         #hud {
-            padding-top: calc(1rem + var(--sat));
-            padding-left: calc(1.5rem + var(--sal));
-            padding-right: calc(1.5rem + var(--sar));
+            padding-top: calc(0.75rem + var(--sat));
+            padding-left: calc(1.25rem + var(--sal));
+            padding-right: calc(1.25rem + var(--sar));
         }
 
         .pixel-text {
@@ -149,89 +150,89 @@
 <div id="game-container">
     <!-- Start Screen -->
     <div id="start-screen" class="absolute inset-0 z-[110] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900">
-        <div class="mb-5 bg-yellow-400 p-6 rounded-[35px] shadow-[0_12px_0_#ca8a04] rotate-[-2deg] border-6 border-white animate-pulse">
-            <h1 class="text-4xl md:text-6xl font-black text-blue-950 italic tracking-tight uppercase">Sunday School Jump Bros</h1>
+        <div class="mb-4 bg-yellow-400 p-5 rounded-[30px] shadow-[0_10px_0_#ca8a04] rotate-[-2deg] border-6 border-white animate-pulse">
+            <h1 class="text-3xl md:text-5xl font-black text-blue-950 italic tracking-tight uppercase">Sunday School Jump Bros</h1>
         </div>
-        <p class="text-yellow-300 font-black text-xl tracking-widest mb-6 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
+        <p class="text-yellow-300 font-black text-lg tracking-widest mb-5 uppercase pixel-text">A to Z Scripture Master • iPad & Desktop Edition</p>
         
-        <div class="mb-8 text-white text-sm space-y-2 max-w-xl bg-white/10 backdrop-blur-md p-5 rounded-[25px] border-4 border-white/30 shadow-2xl">
-            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Hit floating <span class="text-yellow-300 font-black">? BLOCKS</span> for Bible memory & life application challenges!</p>
+        <div class="mb-6 text-white text-xs md:text-sm space-y-1.5 max-w-xl bg-white/10 backdrop-blur-md p-4 rounded-[22px] border-4 border-white/30 shadow-2xl">
+            <p class="font-bold flex items-center justify-center gap-2"><span>⭐</span> Jump into <span class="text-yellow-300 font-black">? BLOCKS</span> for Bible memory & life application challenges!</p>
             <p>Master all 26 A-Z verses. Every option features complete English on top and complete Chinese on the bottom.</p>
-            <p class="text-[11px] font-black uppercase bg-blue-900/60 py-2 px-3 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
+            <p class="text-[10px] font-black uppercase bg-blue-900/60 py-1.5 px-3 rounded-xl text-yellow-200">Controls: Keyboard (Arrows/WASD + Space) or On-Screen Touch Buttons</p>
         </div>
 
-        <button id="btn-start" class="arcade-btn px-14 py-5 text-blue-950 font-black rounded-full uppercase tracking-wider text-xl transition-all border-4 border-white">
+        <button id="btn-start" class="arcade-btn px-12 py-4 text-blue-950 font-black rounded-full uppercase tracking-wider text-lg transition-all border-4 border-white">
             🚀 START MEMORY RUN
         </button>
     </div>
 
     <!-- HUD -->
     <div id="hud" class="absolute top-0 left-0 w-full flex justify-between items-start pointer-events-none z-20">
-        <div class="bg-black/50 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/30 shadow-xl">
+        <div class="bg-black/50 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-white/30 shadow-xl">
             <p class="text-[9px] uppercase font-black text-white/70 tracking-wider">Lives</p>
-            <p id="stats-lives" class="text-xl font-black text-red-500">❤️❤️❤️❤️❤️</p>
+            <p id="stats-lives" class="text-lg font-black text-red-500">❤️❤️❤️❤️❤️</p>
         </div>
-        <div class="bg-black/50 backdrop-blur-md px-6 py-2.5 rounded-2xl border-2 border-white/30 text-center shadow-xl">
+        <div class="bg-black/50 backdrop-blur-md px-5 py-2 rounded-2xl border-2 border-white/30 text-center shadow-xl">
             <p class="text-[9px] uppercase font-black text-white/70 tracking-wider">Time Remaining</p>
-            <p id="stats-timer" class="text-xl font-black text-yellow-300">180s</p>
+            <p id="stats-timer" class="text-lg font-black text-yellow-300">180s</p>
         </div>
-        <div class="bg-black/50 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/30 text-right shadow-xl">
+        <div class="bg-black/50 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-white/30 text-right shadow-xl">
             <p class="text-[9px] uppercase font-black text-white/70 tracking-wider">Score</p>
-            <p id="stats-score" class="text-xl font-black text-green-400">0</p>
+            <p id="stats-score" class="text-lg font-black text-green-400">0</p>
         </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Quiz Overlay (Strictly screen-fitted without scrolling) -->
-    <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="w-full max-w-4xl h-[84dvh] bg-gradient-to-b from-slate-900 to-blue-950 border-6 border-yellow-400 rounded-[30px] p-4 shadow-[0_25px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between">
+    <!-- Quiz Overlay (Strictly screen-fitted without any scrolling) -->
+    <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-3 bg-black/90 backdrop-blur-md">
+        <div class="w-full max-w-4xl h-[78vh] bg-gradient-to-b from-slate-900 to-blue-950 border-6 border-yellow-400 rounded-[26px] p-3 shadow-[0_25px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between">
             <div class="flex justify-between items-center mb-1 shrink-0">
-                <span id="quiz-mode-badge" class="bg-gradient-to-r from-yellow-400 to-amber-500 text-blue-950 text-xs px-3 py-1 rounded-full font-black uppercase tracking-widest shadow-md">Memory & Life Challenge</span>
+                <span id="quiz-mode-badge" class="bg-gradient-to-r from-yellow-400 to-amber-500 text-blue-950 text-[11px] px-3 py-0.5 rounded-full font-black uppercase tracking-widest shadow-md">Memory & Life Challenge</span>
                 <span class="text-yellow-300/70 text-[10px] uppercase font-black tracking-widest flex items-center gap-1">✨ ? Block Challenge</span>
             </div>
             
-            <div class="bg-white/10 backdrop-blur-md border-2 border-yellow-400/30 rounded-2xl px-4 py-2 mb-2 shrink-0 shadow-inner text-center">
-                <p id="quiz-prompt-en" class="text-xs md:text-base font-bold text-yellow-200 leading-snug mb-0.5"></p>
-                <p id="quiz-prompt-zh" class="text-sm md:text-lg font-black text-white leading-snug"></p>
+            <div class="bg-white/10 backdrop-blur-md border-2 border-yellow-400/30 rounded-xl px-3 py-1.5 mb-2 shrink-0 shadow-inner text-center">
+                <p id="quiz-prompt-en" class="text-xs md:text-sm font-bold text-yellow-200 leading-snug mb-0.5"></p>
+                <p id="quiz-prompt-zh" class="text-xs md:text-base font-black text-white leading-snug"></p>
             </div>
 
-            <div id="options-container" class="grid grid-cols-2 gap-3 flex-grow min-h-0"></div>
+            <div id="options-container" class="grid grid-cols-2 gap-2.5 flex-grow min-h-0"></div>
             
-            <div id="feedback-area" class="hidden p-3 rounded-2xl border-4 shrink-0 text-center shadow-xl">
-                <p id="feedback-title" class="font-black uppercase text-xl mb-0.5"></p>
-                <p id="feedback-detail" class="text-xs md:text-sm text-white/90 font-bold"></p>
+            <div id="feedback-area" class="hidden p-2.5 rounded-xl border-4 shrink-0 text-center shadow-xl">
+                <p id="feedback-title" class="font-black uppercase text-lg mb-0.5"></p>
+                <p id="feedback-detail" class="text-xs text-white/90 font-bold"></p>
             </div>
         </div>
     </div>
 
     <!-- End Screen -->
-    <div id="end-screen" class="hidden absolute inset-0 z-[200] flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-950">
-        <div class="mb-5 bg-white p-5 rounded-[30px] shadow-2xl border-6 border-yellow-400 animate-bounce">
-            <h2 id="end-status" class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-blue-950"></h2>
+    <div id="end-screen" class="hidden absolute inset-0 z-[200] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-950">
+        <div class="mb-4 bg-white p-4 rounded-[26px] shadow-2xl border-6 border-yellow-400 animate-bounce">
+            <h2 id="end-status" class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-blue-950"></h2>
         </div>
-        <div class="mb-6">
-            <p class="text-yellow-300 font-black uppercase tracking-widest mb-1 text-lg pixel-text">Final Memory Score</p>
-            <div class="text-7xl md:text-9xl leading-none font-black text-yellow-300 drop-shadow-[0_12px_0_rgba(0,0,0,0.5)]" id="final-score">0</div>
+        <div class="mb-5">
+            <p class="text-yellow-300 font-black uppercase tracking-widest mb-1 text-base pixel-text">Final Memory Score</p>
+            <div class="text-6xl md:text-8xl leading-none font-black text-yellow-300 drop-shadow-[0_10px_0_rgba(0,0,0,0.5)]" id="final-score">0</div>
         </div>
-        <button id="btn-restart" class="arcade-btn px-14 py-5 text-blue-950 font-black rounded-full uppercase tracking-widest text-xl transition-all border-4 border-white">
+        <button id="btn-restart" class="arcade-btn px-12 py-4 text-blue-950 font-black rounded-full uppercase tracking-widest text-lg transition-all border-4 border-white">
             🔄 PLAY AGAIN
         </button>
     </div>
 
     <!-- Touch Controls -->
     <div class="absolute inset-0 pointer-events-none z-30">
-        <div class="absolute bottom-6 left-6 flex gap-4 pointer-events-auto">
-            <div id="ctrl-left" class="control-btn w-20 h-20">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M15 19l-7-7 7-7"/></svg>
+        <div class="absolute bottom-5 left-5 flex gap-3 pointer-events-auto">
+            <div id="ctrl-left" class="control-btn w-16 h-16">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M15 19l-7-7 7-7"/></svg>
             </div>
-            <div id="ctrl-right" class="control-btn w-20 h-20">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M9 5l7 7-7 7"/></svg>
+            <div id="ctrl-right" class="control-btn w-16 h-16">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M9 5l7 7-7 7"/></svg>
             </div>
         </div>
-        <div class="absolute bottom-6 right-6 pointer-events-auto">
-            <div id="ctrl-jump" class="control-btn w-28 h-28 bg-yellow-400/40 border-yellow-400 shadow-2xl flex flex-col items-center justify-center">
-                <div class="text-white font-black text-2xl italic drop-shadow-md">JUMP</div>
+        <div class="absolute bottom-5 right-5 pointer-events-auto">
+            <div id="ctrl-jump" class="control-btn w-24 h-24 bg-yellow-400/40 border-yellow-400 shadow-2xl flex flex-col items-center justify-center">
+                <div class="text-white font-black text-xl italic drop-shadow-md">JUMP</div>
             </div>
         </div>
     </div>
@@ -445,9 +446,9 @@ function handleAnswer(isCorrect, correctItem, container, feedback) {
         
         feedback.classList.remove('hidden');
         container.classList.add('hidden');
-        feedback.className = "p-3 rounded-2xl border-4 border-green-500 bg-green-950/85 shrink-0 text-center shadow-xl";
+        feedback.className = "p-2.5 rounded-xl border-4 border-green-500 bg-green-950/85 shrink-0 text-center shadow-xl";
         document.getElementById('feedback-title').innerText = "🔥 MARVELOUS!";
-        document.getElementById('feedback-title').className = "font-black uppercase text-2xl mb-0.5 text-green-400";
+        document.getElementById('feedback-title').className = "font-black uppercase text-xl mb-0.5 text-green-400";
         document.getElementById('feedback-detail').innerText = `${correctItem.ref} matches this situation perfectly! Keep going!`;
         
         setTimeout(() => resume(), 1200);
@@ -457,9 +458,9 @@ function handleAnswer(isCorrect, correctItem, container, feedback) {
         
         feedback.classList.remove('hidden');
         container.classList.add('hidden');
-        feedback.className = "p-3 rounded-2xl border-4 border-red-500 bg-red-950/85 shrink-0 text-center shadow-xl";
+        feedback.className = "p-2.5 rounded-xl border-4 border-red-500 bg-red-950/85 shrink-0 text-center shadow-xl";
         document.getElementById('feedback-title').innerText = "🕳️ PITFALL!";
-        document.getElementById('feedback-title').className = "font-black uppercase text-2xl mb-0.5 text-red-400";
+        document.getElementById('feedback-title').className = "font-black uppercase text-xl mb-0.5 text-red-400";
         document.getElementById('feedback-detail').innerText = `Correct Verse: ${correctItem.ref} — ${correctItem.en} (${correctItem.zh})`;
         
         pendingQueue.push({ item: correctItem, counter: 3 });
@@ -471,7 +472,7 @@ function handleAnswer(isCorrect, correctItem, container, feedback) {
                 player.x -= 120;
                 resume();
             }
-        }, 2500);
+        }, 2200);
     }
 }
 
