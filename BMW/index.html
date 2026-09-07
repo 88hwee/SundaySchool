@@ -56,16 +56,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            pointer-events: auto;
-            transition: transform 0.1s;
+        .option-btn:active {
+            transform: scale(0.98);
         }
 
-        .control-btn:active {
-            transform: scale(0.85);
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        /* Modified for single-screen fit */
+        /* Responsive typography and layout handling */
         .option-btn {
             transition: all 0.2s;
             display: flex;
@@ -73,50 +68,54 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 0.75rem 1rem;
+            padding: 0.25rem 0.5rem;
             width: 100%;
-            height: auto;
-            min-height: 100%; 
-            border-radius: 16px;
+            height: 100%; /* Fill the grid slot perfectly */
+            min-height: 0; /* Prevents grid blowout */
+            border-radius: 12px;
             font-weight: 700;
-            font-size: clamp(0.85rem, 1.8vh, 1.1rem);
-            line-height: 1.3;
+            /* Combines vw and dvh so text shrinks if screen is narrow OR short */
+            font-size: min(3.5vw, 2.2dvh); 
+            line-height: 1.15;
             box-shadow: 0 4px 0 rgba(0,0,0,0.2);
             border: 3px solid #3b82f6;
-        }
-
-        @media (min-width: 768px) {
-            .option-btn { 
-                padding: 1rem 1.5rem; 
-                border-radius: 20px; 
-                border-width: 4px; 
-                font-size: clamp(1rem, 2vh, 1.2rem);
-                box-shadow: 0 6px 0 rgba(0,0,0,0.2); 
-            }
+            word-break: normal;
+            overflow-wrap: break-word;
+            overflow: hidden; /* Prevent spillover */
         }
 
         .zh-text-dark {
-            font-size: clamp(1rem, 2.2vh, 1.4rem);
+            font-size: min(4.5vw, 2.8dvh); /* Bolder/larger Chinese relative to height/width */
             color: #1e3a8a; /* blue-900 */
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 900;
-            line-height: 1.3;
+            line-height: 1.2;
+        }
+
+        /* Enhancements for iPad and Laptops */
+        @media (min-width: 768px) {
+            .option-btn { 
+                padding: 0.75rem 1rem; 
+                border-radius: 20px; 
+                border-width: 4px; 
+                font-size: min(1.8vw, 2.2dvh);
+                box-shadow: 0 6px 0 rgba(0,0,0,0.2); 
+            }
+            .zh-text-dark {
+                font-size: min(2.2vw, 2.8dvh);
+                margin-top: 6px;
+            }
         }
 
         #options-container {
-            scrollbar-width: thin;
-            scrollbar-color: #93c5fd transparent;
+            align-content: stretch; /* Forces buttons to share vertical space equally */
+            grid-auto-rows: minmax(0, 1fr); /* Crucial: strictly bounds row height so it fits in the screen */
+            gap: 0.5rem;
         }
-        
-        #options-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        #options-container::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        #options-container::-webkit-scrollbar-thumb {
-            background: #93c5fd; 
-            border-radius: 10px;
+        @media (min-width: 768px) {
+            #options-container {
+                gap: 1rem;
+            }
         }
 
         #hud {
@@ -169,22 +168,21 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="quiz-overlay" class="hidden absolute inset-0 z-[150] flex items-center justify-center p-3 md:p-6 bg-black/85 backdrop-blur-sm">
-        <!-- Key Flex Layout for single screen fit -->
-        <div class="w-full max-w-4xl bg-white border-[6px] md:border-8 border-yellow-400 rounded-[24px] md:rounded-[40px] p-4 md:p-8 shadow-2xl flex flex-col max-h-[96dvh]">
+        <!-- Strict height bounds h-[94dvh] to force the grid to squeeze content instead of expanding container -->
+        <div class="w-full max-w-5xl bg-white border-[6px] md:border-8 border-yellow-400 rounded-[24px] md:rounded-[40px] p-4 md:p-8 shadow-2xl flex flex-col h-[94dvh]">
             
             <div class="flex justify-between items-center mb-2 md:mb-4 shrink-0">
-                <span class="bg-blue-600 text-white text-[10px] md:text-[12px] px-3 md:px-4 py-1 md:py-2 rounded-full font-black uppercase tracking-widest">Verse Challenge</span>
+                <span class="bg-blue-600 text-white text-[10px] md:text-[14px] px-3 md:px-5 py-1 md:py-2 rounded-full font-black uppercase tracking-widest">Verse Challenge</span>
             </div>
             
-            <!-- Question text shrinks if needed -->
-            <h3 id="question-text" class="text-sm md:text-2xl font-black mb-2 md:mb-4 text-blue-900 leading-tight shrink-0"></h3>
+            <h3 id="question-text" class="text-[min(4.5vw,2.5dvh)] md:text-[min(2.5vw,3dvh)] font-black mb-3 md:mb-6 text-blue-900 leading-tight shrink-0"></h3>
             
-            <!-- Options grid flex-grows to take available space, min-h-0 allows it to compress -->
-            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 flex-grow min-h-0 overflow-y-auto pr-1 pb-1"></div>
+            <!-- Options grid: grid-cols-1 on mobile/iPad portrait, 2 cols on laptops (lg). grid-auto-rows strictly controls height -->
+            <div id="options-container" class="grid grid-cols-1 lg:grid-cols-2 flex-grow min-h-0"></div>
             
             <!-- Feedback area replaces options -->
-            <div id="feedback-area" class="hidden mt-3 md:mt-6 p-4 md:p-6 rounded-[20px] md:rounded-[30px] border-4 text-center shrink-0">
-                <p id="feedback-title" class="font-black uppercase text-xl md:text-2xl mb-1 md:mb-2"></p>
+            <div id="feedback-area" class="hidden mt-4 md:mt-8 p-4 md:p-8 rounded-[20px] md:rounded-[30px] border-4 text-center shrink-0">
+                <p id="feedback-title" class="font-black uppercase text-xl md:text-3xl mb-2"></p>
                 <p id="feedback-detail" class="text-sm md:text-xl text-blue-900 font-bold"></p>
             </div>
         </div>
@@ -316,19 +314,19 @@ function generateQuestion() {
         distractors.forEach(d => options.push(`${d.text}<div class="zh-text-dark">${d.textZh}</div>`));
     } 
     else if (mode === 1) {
-        qText = `Which verse is this?<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 leading-snug">${target.text}</div><div class="zh-text-dark">${target.textZh}</div>`;
+        qText = `Which verse is this?<br><div class="text-[0.8em] font-normal mt-2 leading-snug">${target.text}</div><div class="zh-text-dark">${target.textZh}</div>`;
         correctStr = `${target.ref}<div class="zh-text-dark">${target.refZh}</div>`;
         options.push(correctStr);
         distractors.forEach(d => options.push(`${d.ref}<div class="zh-text-dark">${d.refZh}</div>`));
     } 
     else if (mode === 2) {
-        qText = `Complete the verse:<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 text-gray-700 leading-snug">${target.h1} <strong>_____</strong></div><div class="zh-text-dark">${target.h1Zh} <strong>_____</strong></div>`;
+        qText = `Complete the verse:<br><div class="text-[0.8em] font-normal mt-2 text-gray-700 leading-snug">${target.h1} <strong>_____</strong></div><div class="zh-text-dark">${target.h1Zh} <strong>_____</strong></div>`;
         correctStr = `${target.h2}<div class="zh-text-dark">${target.h2Zh}</div>`;
         options.push(correctStr);
         distractors.forEach(d => options.push(`${d.h2}<div class="zh-text-dark">${d.h2Zh}</div>`));
     }
     else if (mode === 3) {
-        qText = `Fill in the beginning:<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 text-gray-700 leading-snug"><strong>_____</strong> ${target.h2}</div><div class="zh-text-dark"><strong>_____</strong> ${target.h2Zh}</div>`;
+        qText = `Fill in the beginning:<br><div class="text-[0.8em] font-normal mt-2 text-gray-700 leading-snug"><strong>_____</strong> ${target.h2}</div><div class="zh-text-dark"><strong>_____</strong> ${target.h2Zh}</div>`;
         correctStr = `${target.h1}<div class="zh-text-dark">${target.h1Zh}</div>`;
         options.push(correctStr);
         distractors.forEach(d => options.push(`${d.h1}<div class="zh-text-dark">${d.h1Zh}</div>`));
@@ -336,14 +334,14 @@ function generateQuestion() {
     else if (mode === 4) {
         let isTrue = Math.random() > 0.5;
         let displayVerse = isTrue ? target : distractors[0];
-        qText = `True or False?<br><span class="text-blue-600">${target.ref}</span> <span class="text-xl md:text-2xl font-black text-gray-700">(${target.refZh})</span><br>matches this text:<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 leading-snug">${displayVerse.text}</div><div class="zh-text-dark">${displayVerse.textZh}</div>`;
+        qText = `True or False?<br><span class="text-blue-600">${target.ref}</span> <span class="text-[0.9em] font-black text-gray-700">(${target.refZh})</span><br>matches this text:<br><div class="text-[0.8em] font-normal mt-2 leading-snug">${displayVerse.text}</div><div class="zh-text-dark">${displayVerse.textZh}</div>`;
         
         correctStr = isTrue ? `True<div class="zh-text-dark">正确</div>` : `False<div class="zh-text-dark">错误</div>`;
         let wrongStr = isTrue ? `False<div class="zh-text-dark">错误</div>` : `True<div class="zh-text-dark">正确</div>`;
         options = [correctStr, wrongStr]; 
     }
     else if (mode === 5) {
-        qText = `Who is the speaker or primary author of this verse?<br><div class="text-[0.95rem] md:text-xl font-normal mt-2 leading-snug">${target.text}</div><div class="zh-text-dark">${target.textZh}</div>`;
+        qText = `Who is the speaker or primary author of this verse?<br><div class="text-[0.8em] font-normal mt-2 leading-snug">${target.text}</div><div class="zh-text-dark">${target.textZh}</div>`;
         correctStr = `${target.author}<div class="zh-text-dark">${target.authorZh}</div>`;
         
         let authorDistractors = [];
