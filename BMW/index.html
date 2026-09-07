@@ -405,7 +405,6 @@ function triggerQuiz(block) {
 
     let qTitle = "";
     let qSub = "";
-    let correctAnswerObj = item;
     let rawOptionsList = [];
 
     const others = BIBLE_DATA.filter(x => x.ref !== item.ref);
@@ -518,7 +517,7 @@ function triggerQuiz(block) {
         }
         else if (mode === 'author') {
             displayEn = `Author: ${optData.authorName}`;
-            displayZh = optData.correct ? `经 文 作 者 / 说 说 者 (正确)` : `经 文 作 者 / 说 说 者 (错误)`;
+            displayZh = optData.correct ? `${item.en}\n${item.zh}` : `${optData.obj ? optData.obj.en : ''}\n${optData.obj ? optData.obj.zh : ''}`;
             isCorrect = optData.correct;
         }
 
