@@ -80,7 +80,7 @@
             min-height: 0; /* Prevents grid blowout */
             border-radius: 12px;
             font-weight: 700;
-            font-size: clamp(10px, min(2.8vw, 2.8dvh), 15px); 
+            font-size: clamp(10px, min(2.5vw, 2.5dvh), 14px); 
             line-height: 1.1;
             box-shadow: 0 4px 0 rgba(0,0,0,0.2);
             border: 3px solid #3b82f6;
@@ -90,7 +90,7 @@
         }
 
         .zh-text-dark {
-            font-size: clamp(11px, min(3.5vw, 3.2dvh), 16px); /* Bold Chinese relative to height/width */
+            font-size: clamp(11px, min(3.2vw, 3dvh), 15px); /* Bold Chinese relative to height/width */
             color: #1e3a8a; /* blue-900 */
             margin-top: 2px;
             font-weight: 900;
@@ -117,7 +117,7 @@
             padding: 2rem;
             color: white;
         }
-        @media screen and (orientation: portrait) and (max-width: 896px) {
+        @media screen and (orientation: portrait) and (max-width: 926px) {
             #rotate-overlay {
                 display: flex;
             }
@@ -178,7 +178,7 @@
                 <span id="quiz-status" class="text-blue-900/60 text-[10px] uppercase font-black tracking-widest">Hit the ? Block!</span>
             </div>
             
-            <h3 id="question-text" class="text-[min(3.5vw,2.2dvh)] md:text-[min(2.2vw,2.5dvh)] font-black my-2 text-blue-900 leading-tight shrink-0"></h3>
+            <h3 id="question-text" class="text-[min(3vw,2dvh)] md:text-[min(2vw,2.2dvh)] font-black my-1 text-blue-900 leading-tight shrink-0"></h3>
             
             <!-- Options grid: 2x2 grid horizontally designed to fill available space without scrolling -->
             <div id="options-container" class="grid grid-cols-2 gap-3 flex-grow min-h-0"></div>
@@ -224,7 +224,7 @@
 </div>
 
 <script>
-// Complete A-Z Bible Verses Data (English + Chinese + Authors)
+// Complete A-Z Bible Verses Data
 const VERSES = [
     { key: "Ask", ref: "Matthew 7:7", eng: "Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you.", zh: "你 们 祈 求 ， 就 给 你 们 ； 寻 找 ， 就 寻 见 ； 叩 门 ， 就 给 你 们 开 门 。", author: "Jesus" },
     { key: "Believe", ref: "Acts 16:31", eng: "Believe in the Lord Jesus, and you will be saved, you and your household.", zh: "当 信 主 耶 稣 ， 你 和 你 一 家 都 必 得 救 。", author: "Paul" },
@@ -281,7 +281,7 @@ const player = {
 };
 
 let blocks = [];
-let pendingReviewQueue = []; // Spaced repetition queue for 3 questions later
+let pendingReviewQueue = [];
 let fireworks = [];
 
 function shuffle(a) {
@@ -345,46 +345,60 @@ function init() {
     window.addEventListener('orientationchange', () => setTimeout(resize, 200));
     resize();
 
-    const handleKey = (e, isDown) => {
+    window.addEventListener('keydown', (e) => {
         if (!state.gameActive || state.paused) return;
         const key = e.key.toLowerCase();
-        if (key === 'arrowleft' || key === 'a') inputs.left = isDown;
-        if (key === 'arrowright' || key === 'd') inputs.right = isDown;
-        if (isDown && (key === ' ' || key === 'w' || key === 'arrowup')) {
+        if (key === 'arrowleft' || key === 'a') inputs.left = true;
+        if (key === 'arrowright' || key === 'd') inputs.right = true;
+        if (key === ' ' || key === 'w' || key === 'arrowup') {
             e.preventDefault();
             handleJump();
         }
-    };
-    window.addEventListener('keydown', (e) => handleKey(e, true));
-    window.addEventListener('keyup', (e) => handleKey(e, false));
+    });
 
-    const setupTouch = (id, key) => {
+    window.addEventListener('keyup', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'arrowleft' || key === 'a') inputs.left = false;
+        if (key === 'arrowright' || key === 'd') inputs.right = false;
+    });
+
+    const bindTouch = (id, setter) => {
         const el = document.getElementById(id);
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); inputs[key] = true; }, {passive: false});
-        el.addEventListener('touchend', (e) => { e.preventDefault(); inputs[key] = false; }, {passive: false});
+        if(!el) return;
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); setter(true); }, {passive: false});
+        el.addEventListener('touchend', (e) => { e.preventDefault(); setter(false); }, {passive: false});
+        el.addEventListener('touchcancel', (e) => { e.preventDefault(); setter(false); }, {passive: false});
     };
-    setupTouch('ctrl-left', 'left');
-    setupTouch('ctrl-right', 'right');
-    document.getElementById('ctrl-jump').addEventListener('touchstart', (e) => { e.preventDefault(); handleJump(); }, {passive: false});
+    bindTouch('ctrl-left', (v) => inputs.left = v);
+    bindTouch('ctrl-right', (v) => inputs.right = v);
 
-    document.getElementById('btn-start').onclick = () => {
-        document.getElementById('start-screen').classList.add('hidden');
-        state.gameStarted = true;
-        state.gameActive = true;
-    };
+    const jumpBtn = document.getElementById('ctrl-jump');
+    if(jumpBtn) {
+        jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleJump(); }, {passive: false});
+    }
 
-    document.getElementById('btn-restart').onclick = () => location.reload();
+    const startBtn = document.getElementById('btn-start');
+    if(startBtn) {
+        startBtn.onclick = () => {
+            document.getElementById('start-screen').classList.add('hidden');
+            state.gameStarted = true;
+            state.gameActive = true;
+        };
+    }
+
+    const restartBtn = document.getElementById('btn-restart');
+    if(restartBtn) {
+        restartBtn.onclick = () => location.reload();
+    }
+
     requestAnimationFrame(gameLoop);
 }
 
-// 6 Infinite Question Types Generator
 function generateQuestion() {
-    // Check if there is a due question from 3 turns ago
     if (pendingReviewQueue.length > 0 && pendingReviewQueue[0].turnsLeft <= 0) {
         return pendingReviewQueue.shift().qData;
     }
 
-    // Decrement pending review counters
     pendingReviewQueue.forEach(item => item.turnsLeft--);
 
     const v = VERSES[Math.floor(Math.random() * VERSES.length)];
@@ -396,8 +410,8 @@ function generateQuestion() {
     let options = [];
 
     switch(mode) {
-        case 0: // Find Verse from Reference
-            qText = `Choose the correct verse for: <span class="text-blue-600">${v.ref} (${v.key})</span>`;
+        case 0:
+            qText = `Choose correct verse for: <span class="text-blue-600">${v.ref} (${v.key})</span>`;
             correctAns = `${v.eng} <span class="zh-text-dark">${v.zh}</span>`;
             options = [
                 correctAns,
@@ -406,32 +420,29 @@ function generateQuestion() {
                 `${others[2].eng} <span class="zh-text-dark">${others[2].zh}</span>`
             ];
             break;
-        case 1: // Find Reference from Verse
-            qText = `Which Bible reference matches this verse?<br>"${v.eng}"<br><span class="zh-text-dark">${v.zh}</span>`;
+        case 1:
+            qText = `Which reference matches:<br>"${v.eng}"<br><span class="zh-text-dark">${v.zh}</span>`;
             correctAns = v.ref;
             options = [correctAns, others[0].ref, others[1].ref, others[2].ref];
             break;
-        case 2: // Complete 2nd Half
+        case 2:
             const halfLen = Math.floor(v.eng.length / 2);
             const topHalf = v.eng.substring(0, halfLen);
             const bottomHalf = v.eng.substring(halfLen);
-            qText = `Complete the 2nd half for <span class="text-blue-600">${v.ref}</span>:<br>"${topHalf}..."`;
+            qText = `Complete 2nd half for <span class="text-blue-600">${v.ref}</span>:<br>"${topHalf}..."`;
             correctAns = `"...${bottomHalf}" <span class="zh-text-dark">${v.zh}</span>`;
-            const b1 = v.eng.substring(Math.floor(others[0].eng.length / 2));
-            const b2 = v.eng.substring(Math.floor(others[1].eng.length / 2));
-            const b3 = v.eng.substring(Math.floor(others[2].eng.length / 2));
             options = [
                 correctAns,
-                `"...${b1}" <span class="zh-text-dark">${others[0].zh}</span>`,
-                `"...${b2}" <span class="zh-text-dark">${others[1].zh}</span>`,
-                `"...${b3}" <span class="zh-text-dark">${others[2].zh}</span>`
+                `"...${v.eng.substring(Math.floor(others[0].eng.length/2))}" <span class="zh-text-dark">${others[0].zh}</span>`,
+                `"...${v.eng.substring(Math.floor(others[1].eng.length/2))}" <span class="zh-text-dark">${others[1].zh}</span>`,
+                `"...${v.eng.substring(Math.floor(others[2].eng.length/2))}" <span class="zh-text-dark">${others[2].zh}</span>`
             ];
             break;
-        case 3: // Complete 1st Half (Fill in beginning)
+        case 3:
             const splitIndex = Math.floor(v.eng.length / 2);
             const firstHalf = v.eng.substring(0, splitIndex);
             const secondHalf = v.eng.substring(splitIndex);
-            qText = `Complete the 1st half ending with:<br>"...${secondHalf}" (${v.ref})`;
+            qText = `Complete 1st half ending with:<br>"...${secondHalf}" (${v.ref})`;
             correctAns = `"${firstHalf}"`;
             options = [
                 correctAns,
@@ -440,15 +451,15 @@ function generateQuestion() {
                 `"${others[2].eng.substring(0, Math.floor(others[2].eng.length / 2))}"`
             ];
             break;
-        case 4: // True or False Match
+        case 4:
             const isTrue = Math.random() > 0.5;
             const targetV = isTrue ? v : others[0];
             qText = `True or False? Does <span class="text-blue-600">${v.ref}</span> say:<br>"${targetV.eng}"`;
             correctAns = isTrue ? "TRUE (正确)" : "FALSE (错误)";
             options = ["TRUE (正确)", "FALSE (错误)", "TRUE - PARTIAL", "FALSE - DIFFERENT BOOK"];
             break;
-        case 5: // Who said / wrote this?
-            qText = `Who is the primary author / speaker associated with <span class="text-blue-600">${v.ref} (${v.key})</span>?`;
+        case 5:
+            qText = `Who is the primary author associated with <span class="text-blue-600">${v.ref} (${v.key})</span>?`;
             correctAns = v.author;
             const authorsPool = ["Paul", "David", "Jesus", "Solomon", "John", "Isaiah", "Moses", "Nehemiah", "Jeremiah"];
             const wrongAuthors = shuffle(authorsPool.filter(a => a !== v.author));
@@ -486,7 +497,7 @@ function triggerQuiz(block) {
                 container.classList.add('hidden');
                 feedback.className = "my-auto p-4 rounded-[20px] border-4 border-green-500 bg-green-50 shrink-0";
                 document.getElementById('feedback-title').innerText = "CORRECT! 🎉";
-                document.getElementById('feedback-title').className = "font-black uppercase text-2xl mb-1 text-green-600";
+                document.getElementById('feedback-title').className = "font-black uppercase text-xl mb-1 text-green-600";
                 document.getElementById('feedback-detail').innerText = `${currentQ.rawV.ref}: ${currentQ.rawV.eng}`;
                 
                 setTimeout(() => resumeGame(), 1500);
@@ -495,10 +506,9 @@ function triggerQuiz(block) {
                 container.classList.add('hidden');
                 feedback.className = "my-auto p-4 rounded-[20px] border-4 border-red-500 bg-red-50 shrink-0";
                 document.getElementById('feedback-title').innerText = "INCORRECT! 💥";
-                document.getElementById('feedback-title').className = "font-black uppercase text-2xl mb-1 text-red-600";
-                document.getElementById('feedback-detail').innerText = `Correct Answer: ${currentQ.correctAns}`;
+                document.getElementById('feedback-title').className = "font-black uppercase text-xl mb-1 text-red-600";
+                document.getElementById('feedback-detail').innerText = `Correct: ${currentQ.correctAns}`;
                 
-                // Add question back into spaced repetition queue to repeat 3 turns later
                 pendingReviewQueue.push({ turnsLeft: 3, qData: currentQ });
 
                 setTimeout(() => {
@@ -529,12 +539,10 @@ function triggerPitDrop() {
     state.pitActive = true;
     state.pitX = player.x - 50;
     
-    // Fall animation into pit
     let fallInterval = setInterval(() => {
         player.y += 15;
         if (player.y > state.viewportH + 100) {
             clearInterval(fallInterval);
-            // Respawn player back slightly
             player.x = Math.max(50, player.x - 300);
             player.y = state.groundY - player.h - 150;
             player.vy = 0;
@@ -603,11 +611,9 @@ function gameLoop() {
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Sky
     ctx.fillStyle = "#5c94fc";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Clouds
     ctx.fillStyle = "rgba(255,255,255,0.4)";
     for(let i=0; i<20; i++) {
         ctx.beginPath(); 
@@ -618,19 +624,16 @@ function render() {
     ctx.save();
     ctx.translate(state.cameraX, 0);
     
-    // Ground
     ctx.fillStyle = "#88d800"; 
     ctx.fillRect(-10000, state.groundY, 100000, 25);
     ctx.fillStyle = "#c84c0c"; 
     ctx.fillRect(-10000, state.groundY + 25, 100000, 150);
 
-    // Pit hole visualization if active
     if (state.pitActive) {
         ctx.fillStyle = "#1e293b";
         ctx.fillRect(state.pitX, state.groundY, 120, 200);
     }
 
-    // Blocks
     blocks.forEach(b => { 
         if (!b.active && b.type === 'quiz') {
             ctx.fillStyle = '#6b7280'; 
@@ -662,22 +665,20 @@ function render() {
         }
     });
     
-    // Character (Mario Style)
     ctx.save();
     ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
     if (!player.facingRight) ctx.scale(-1, 1);
     
     const walk = Math.sin(player.frame * 2) * 4;
-    ctx.fillStyle = "#ef4444"; // Hat/Shirt
+    ctx.fillStyle = "#ef4444";
     ctx.fillRect(-20, -32 + walk, 40, 16);
-    ctx.fillStyle = "#ffdbac"; // Face
+    ctx.fillStyle = "#ffdbac";
     ctx.fillStyle = "#ef4444";
     ctx.fillRect(-18, -20 + walk, 36, 24);
-    ctx.fillStyle = "#2563eb"; // Overalls
+    ctx.fillStyle = "#2563eb";
     ctx.fillRect(-18, 4 + walk, 36, 26);
     ctx.restore();
 
-    // Render Fireworks particles
     fireworks.forEach((f, idx) => {
         f.x += f.vx;
         f.y += f.vy;
@@ -694,7 +695,6 @@ function render() {
     ctx.restore();
 }
 
-// 3-Minute Countdown Timer
 setInterval(() => {
     if (state.gameStarted && state.gameActive && !state.paused && state.timer > 0) {
         state.timer--;
